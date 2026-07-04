@@ -294,11 +294,12 @@ Return JSON: {"trigger": "...", "condition": "...", "action": "...", "params": {
         try {
           const params = JSON.parse(rule.params || '{}');
           
-          if (rule.last_triggered) {
-            const lastTriggered = new Date(rule.last_triggered).getTime();
+          const lastTriggered = (rule as any).last_triggered || rule.lastTriggered;
+          if (lastTriggered) {
+            const lastTriggeredTime = new Date(lastTriggered).getTime();
             const now = Date.now();
             const cooldownMs = 60 * 60 * 1000;
-            if (now - lastTriggered < cooldownMs) continue;
+            if (now - lastTriggeredTime < cooldownMs) continue;
           }
 
         } catch (err) {
