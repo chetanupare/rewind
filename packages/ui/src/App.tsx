@@ -1,58 +1,111 @@
-import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import ActivityLog from './pages/ActivityLog';
-import Timeline from './pages/Timeline';
-import Search from './pages/Search';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  MessageSquare,
+  Brain,
+  Search,
+  Clock,
+  FileText,
+  Settings,
+  ChevronRight,
+  User,
+  Sparkles,
+} from 'lucide-react';
 import Chat from './pages/Chat';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
-import Omnibar from './pages/Omnibar';
+import Memory from './pages/Memory';
+import SearchPage from './pages/Search';
+import Timeline from './pages/Timeline';
+import Notes from './pages/Notes';
+import SettingsPage from './pages/Settings';
+
+type Page = 'chat' | 'memory' | 'search' | 'timeline' | 'notes' | 'settings';
+
+const navItems = [
+  { id: 'chat' as Page, icon: MessageSquare, label: 'Chat' },
+  { id: 'memory' as Page, icon: Brain, label: 'Memory' },
+  { id: 'search' as Page, icon: Search, label: 'Search' },
+  { id: 'timeline' as Page, icon: Clock, label: 'Timeline' },
+  { id: 'notes' as Page, icon: FileText, label: 'Notes' },
+  { id: 'settings' as Page, icon: Settings, label: 'Settings' },
+];
 
 export default function App() {
-  const location = useLocation();
-  const isOmnibar = location.pathname === '/omnibar';
+  const [currentPage, setCurrentPage] = useState<Page>('chat');
+  const [showMemoryPanel, setShowMemoryPanel] = useState(true);
 
-  if (isOmnibar) {
-    return (
-      <Routes>
-        <Route path="/omnibar" element={<Omnibar />} />
-      </Routes>
-    );
-  }
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'chat':
+        return <Chat onToggleMemory={() => setShowMemoryPanel(!showMemoryPanel)} />;
+      case 'memory':
+        return <Memory />;
+      case 'search':
+        return <SearchPage />;
+      case 'timeline':
+        return <Timeline />;
+      case 'notes':
+        return <Notes />;
+      case 'settings':
+        return <SettingsPage />;
+      default:
+        return <Chat onToggleMemory={() => setShowMemoryPanel(!showMemoryPanel)} />;
+    }
+  };
 
   return (
-    <div className="app">
-      <nav className="sidebar">
-        <div className="sidebar-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img 
-              src="./assets/brand/icon.png" 
-              alt="RewindX" 
-              style={{ width: '32px', height: '32px', borderRadius: '8px' }}
-            />
-            <h1>RewindX</h1>
+    <div className="relative min-h-screen bg-bg overflow-hidden">
+      {/* Background Effects */}
+      <div className="bg-glow-purple" />
+      <div className="bg-glow-pink" />
+      <div className="noise-overlay" />
+
+      {/* Sidebar */}
+      <nav className="sidebar-nav">
+        {/* Logo */}
+        <div className="mb-6">
+          <div className="w-10 h-10 rounded-xl bg-purple flex items-center justify-center glow-purple">
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
         </div>
-        <ul className="nav-links">
-          <li><NavLink to="/" className={({ isActive }) => isActive ? 'active' : ''}>Dashboard</NavLink></li>
-          <li><NavLink to="/activity" className={({ isActive }) => isActive ? 'active' : ''}>Activity Log</NavLink></li>
-          <li><NavLink to="/timeline" className={({ isActive }) => isActive ? 'active' : ''}>Timeline</NavLink></li>
-          <li><NavLink to="/search" className={({ isActive }) => isActive ? 'active' : ''}>Search</NavLink></li>
-          <li><NavLink to="/chat" className={({ isActive }) => isActive ? 'active' : ''}>AI Chat</NavLink></li>
-          <li><NavLink to="/reports" className={({ isActive }) => isActive ? 'active' : ''}>Reports</NavLink></li>
-          <li><NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''}>Settings</NavLink></li>
-        </ul>
+
+        {/* Nav Items */}
+        <div className="flex-1 flex flex-col items-center gap-2">
+          {navItems.map((item) => (
+            <motion.button
+              key={item.id}
+              className={`sidebar-item ${currentPage === item.id ? 'active' : ''}`}
+              onClick={() => setCurrentPage(item.id)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              title={item.label}
+            >
+              <item.icon className="w-5 h-5" />
+            </motion.button>
+          ))}
+        </div>
+
+        {/* User Avatar */}
+        <div className="mt-auto">
+          <div className="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center">
+            <User className="w-4 h-4 text-text-secondary" />
+          </div>
+        </div>
       </nav>
-      <main className="content">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/activity" element={<ActivityLog />} />
-          <Route path="/timeline" element={<Timeline />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
+
+      {/* Main Content */}
+      <main className="ml-[72px] h-screen overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentPage}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="h-full"
+          >
+            {renderPage()}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );
