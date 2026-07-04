@@ -148,11 +148,6 @@ function createTray(): void {
   if (iconPath) {
     icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
   } else {
-    // Create a simple colored icon
-    icon = nativeImage.createEmpty();
-  }
-    icon = nativeImage.createFromPath(iconPath);
-  } else {
     icon = nativeImage.createEmpty();
   }
   
