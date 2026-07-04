@@ -1,0 +1,176 @@
+export type EventType =
+  | 'WINDOW_CHANGED'
+  | 'WINDOW_CLOSED'
+  | 'MOUSE_CLICKED'
+  | 'MOUSE_SCROLLED'
+  | 'MOUSE_MOVED'
+  | 'MOUSE_IDLE'
+  | 'KEYSTROKE_BATCH'
+  | 'SHORTCUT_PRESSED'
+  | 'SCREENSHOT_CAPTURED'
+  | 'SCREENSHOT_PROCESSED'
+  | 'BROWSER_TAB_CHANGED'
+  | 'BROWSER_URL_CHANGED'
+  | 'BROWSER_DOWNLOAD_STARTED'
+  | 'BROWSER_SEARCH_QUERY'
+  | 'OCR_COMPLETED'
+  | 'CLIPBOARD_CHANGED'
+  | 'FILE_OPENED'
+  | 'FILE_SAVED'
+  | 'FILE_DELETED'
+  | 'FILE_RENAMED'
+  | 'FILE_MODIFIED'
+  | 'GIT_COMMIT'
+  | 'GIT_BRANCH_CHANGED'
+  | 'GIT_REPO_DETECTED'
+  | 'SYSTEM_BOOT'
+  | 'SYSTEM_SHUTDOWN'
+  | 'SYSTEM_SLEEP'
+  | 'SYSTEM_RESUME'
+  | 'SYSTEM_LOCK'
+  | 'SYSTEM_UNLOCK'
+  | 'SYSTEM_RESOURCE_UPDATE'
+  | 'SESSION_STARTED'
+  | 'SESSION_ENDED'
+  | 'SESSION_UPDATED'
+  | 'PROJECT_DETECTED'
+  | 'PROJECT_UPDATED'
+  | 'AI_ANALYSIS_COMPLETE'
+  | 'EMBEDDING_GENERATED'
+  | 'KNOWLEDGE_GRAPH_UPDATED'
+  | 'FLOW_STATE_CHANGED'
+  | 'STANDUP_READY';
+
+export type CollectorSource =
+  | 'window-tracker'
+  | 'mouse-tracker'
+  | 'keyboard-tracker'
+  | 'screenshot-service'
+  | 'browser-tracker'
+  | 'ocr-service'
+  | 'clipboard-monitor'
+  | 'filesystem-watcher'
+  | 'git-tracker'
+  | 'system-events'
+  | 'session-builder'
+  | 'ai-pipeline'
+  | 'learning-engine'
+  | 'flow-state-tracker'
+  | 'thrashing-detector'
+  | 'scheduler';
+
+export interface EventPayload {
+  id: string;
+  timestamp: string;
+  type: EventType;
+  source: CollectorSource;
+  payload: Record<string, unknown>;
+}
+
+export interface WindowEvent {
+  appName: string;
+  executable: string;
+  pid: number;
+  windowTitle: string;
+  windowBounds: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
+export interface MouseEvent {
+  type: 'click' | 'scroll' | 'move' | 'idle';
+  button?: 'left' | 'right' | 'middle';
+  doubleClick?: boolean;
+  position: { x: number; y: number };
+  scrollDelta?: { x: number; y: number };
+  idleDurationMs?: number;
+}
+
+export interface KeyboardEvent {
+  keystrokeCount: number;
+  shortcuts: string[];
+  typingSpeed: number;
+  idleDurationMs: number;
+  activeApp: string;
+}
+
+export interface ScreenshotData {
+  filePath: string;
+  filePathCompressed: string;
+  width: number;
+  height: number;
+  imageHash: string;
+}
+
+export interface ScreenshotAnalysis {
+  ocrText: string;
+  aiDescription: string;
+  aiApp: string;
+  aiTask: string;
+  aiProject: string;
+  aiLanguage: string;
+  aiFramework: string;
+  aiState: ActivityState;
+  aiTags: string[];
+}
+
+export type ActivityState =
+  | 'coding'
+  | 'debugging'
+  | 'reading'
+  | 'browsing'
+  | 'designing'
+  | 'meeting'
+  | 'email'
+  | 'terminal'
+  | 'testing'
+  | 'deploying'
+  | 'documenting'
+  | 'communicating'
+  | 'idle'
+  | 'other';
+
+export interface BrowserEvent {
+  browser: 'chrome' | 'edge' | 'firefox';
+  tabId?: number;
+  url?: string;
+  pageTitle?: string;
+  searchQuery?: string;
+  type: 'tab_changed' | 'url_changed' | 'download' | 'new_tab' | 'closed_tab';
+}
+
+export interface ClipboardEvent {
+  contentType: 'text' | 'code' | 'image';
+  contentHash: string;
+  contentPreview: string;
+  isSensitive: boolean;
+  sourceApp: string;
+}
+
+export interface FileEvent {
+  type: 'opened' | 'saved' | 'deleted' | 'renamed' | 'modified';
+  filePath: string;
+  oldPath?: string;
+  fileSize?: number;
+  extension?: string;
+}
+
+export interface GitEvent {
+  repoPath: string;
+  branch: string;
+  commitHash?: string;
+  commitMessage?: string;
+  filesChanged?: string[];
+  author?: string;
+}
+
+export interface SystemEvent {
+  type: 'boot' | 'shutdown' | 'sleep' | 'resume' | 'lock' | 'unlock';
+  battery?: number;
+  cpu?: number;
+  ram?: number;
+  network?: boolean;
+}

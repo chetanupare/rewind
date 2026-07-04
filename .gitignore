@@ -1,0 +1,30 @@
+node_modules/
+dist/
+dist-electron/
+*.js.map
+*.d.ts.map
+.env
+.env.local
+
+# Runtime data
+data/db/*.db
+data/db/*.db-journal
+data/db/*.db-wal
+data/db/*.db-shm
+data/screenshots/
+data/embeddings/
+data/logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Build
+*.tsbuildinfo
+
+# Logs
+*.log
