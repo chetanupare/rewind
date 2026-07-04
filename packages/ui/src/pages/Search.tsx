@@ -10,10 +10,8 @@ import {
   GitCommit,
   Image,
   ArrowRight,
-  Sparkles,
   X,
-  Filter,
-  SlidersHorizontal,
+  Brain,
 } from 'lucide-react';
 
 declare global {
@@ -26,6 +24,8 @@ declare global {
         snippet: string;
         timestamp: string;
       }>>;
+      getRecentActivities: (limit?: number) => Promise<any[]>;
+      getScreenshotsByDate: (date: string) => Promise<any[]>;
     };
   }
 }
@@ -43,12 +43,27 @@ export default function SearchPage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [recentScreenshots, setRecentScreenshots] = useState<any[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+    loadRecentData();
   }, []);
+
+  const loadRecentData = async () => {
+    try {
+      const [activities, screenshots] = await Promise.all([
+        window.electronAPI.getRecentActivities(5),
+        window.electronAPI.getScreenshotsByDate(new Date().toISOString().split('T')[0]),
+      ]);
+      setRecentActivities(activities);
+      setRecentScreenshots(screenshots.slice(0, 5));
+    } catch (err) {
+      console.error('Failed to load recent data:', err);
+    }
+  };
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -87,52 +102,27 @@ export default function SearchPage() {
     }
   };
 
-  const recentSearches = [
-    'React components',
-    'MongoDB errors',
-    'meeting notes',
-    'invoice module',
-    'authentication fix',
-    'VS Code sessions',
-  ];
-
-  const filteredResults = selectedFilter === 'all'
-    ? results
-    : results.filter(r => r.type === selectedFilter);
+  const handleResultClick = (result: SearchResult) => {
+    // Navigate to relevant page based on type
+    console.log('Clicked result:', result);
+  };
 
   return (
     <>
       <div className="page-header" style={{ borderBottom: 'none', background: 'transparent' }}>
         <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center', paddingTop: '40px' }}>
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
             <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-text)', marginBottom: '8px' }}>
               Search your memory
             </h1>
             <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '32px' }}>
-              Find anything in your work history - activities, screenshots, commits, and more
+              Find anything in your work history
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            style={{ position: 'relative', maxWidth: 600, margin: '0 auto' }}
-          >
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: 'var(--color-surface)',
-              border: '2px solid var(--color-border)',
-              borderRadius: '16px',
-              padding: '4px',
-              transition: 'border-color 0.2s',
-              boxShadow: loading ? '0 0 0 4px var(--color-purple-glow)' : 'none',
-            }}>
-              <SearchIcon style={{ width: 20, height: 20, color: 'var(--color-text-muted)', marginLeft: '16px' }} />
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <div className="card" style={{ padding: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <SearchIcon style={{ width: 20, height: 20, color: 'var(--color-text-muted)', marginLeft: '12px' }} />
               <input
                 ref={inputRef}
                 type="text"
@@ -142,7 +132,7 @@ export default function SearchPage() {
                 placeholder="Search activities, screenshots, commits..."
                 style={{
                   flex: 1,
-                  padding: '16px',
+                  padding: '12px',
                   fontSize: '15px',
                   background: 'transparent',
                   border: 'none',
@@ -152,26 +142,11 @@ export default function SearchPage() {
                 }}
               />
               {query && (
-                <button
-                  onClick={() => { setQuery(''); setResults([]); setHasSearched(false); }}
-                  style={{
-                    background: 'var(--color-bg)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '8px',
-                    cursor: 'pointer',
-                    marginRight: '8px',
-                  }}
-                >
-                  <X style={{ width: 16, height: 16, color: 'var(--color-text-muted)' }} />
+                <button onClick={() => { setQuery(''); setResults([]); setHasSearched(false); }} className="btn-icon">
+                  <X style={{ width: 16, height: 16 }} />
                 </button>
               )}
-              <button
-                onClick={handleSearch}
-                disabled={!query.trim() || loading}
-                className="btn btn-primary"
-                style={{ padding: '12px 24px', borderRadius: '12px' }}
-              >
+              <button onClick={handleSearch} disabled={!query.trim() || loading} className="btn btn-primary" style={{ padding: '10px 20px' }}>
                 {loading ? 'Searching...' : 'Search'}
               </button>
             </div>
@@ -182,67 +157,56 @@ export default function SearchPage() {
       <div className="page-body" style={{ paddingTop: 0 }}>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
           {!hasSearched && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div style={{ marginBottom: '32px' }}>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Recent Searches
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {recentSearches.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => { setQuery(s); handleSearch(); }}
-                      className="btn btn-secondary"
-                      style={{ fontSize: '12px', padding: '8px 14px', borderRadius: '10px' }}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                {[
-                  { icon: Code, label: 'Activities', desc: 'App usage and window titles', color: '#6D4CFF' },
-                  { icon: Image, label: 'Screenshots', desc: 'Visual history with AI analysis', color: '#FF4FA3' },
-                  { icon: GitCommit, label: 'Commits', desc: 'Git commits and branches', color: '#00D47E' },
-                ].map((item) => (
-                  <div key={item.label} className="card" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => setSelectedFilter(item.label.toLowerCase())}>
-                    <div style={{ width: 40, height: 40, borderRadius: '12px', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                      <item.icon style={{ width: 20, height: 20, color: item.color }} />
-                    </div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' }}>{item.label}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{item.desc}</div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+              {/* Recent Activities */}
+              {recentActivities.length > 0 && (
+                <div style={{ marginBottom: '24px' }}>
+                  <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Recent Activity
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {recentActivities.map((a, i) => (
+                      <div key={i} className="card" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                        onClick={() => { setQuery(a.app_name || a.window_title); handleSearch(); }}>
+                        <Clock style={{ width: 16, height: 16, color: 'var(--color-text-muted)' }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>{a.app_name}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{a.window_title || 'No title'}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+              {/* Recent Screenshots */}
+              {recentScreenshots.length > 0 && (
+                <div style={{ marginBottom: '24px' }}>
+                  <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Recent Screenshots
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
+                    {recentScreenshots.map((s, i) => (
+                      <div key={i} className="card" style={{ padding: '8px', cursor: 'pointer' }}
+                        onClick={() => { setQuery(s.ai_app || 'screenshot'); handleSearch(); }}>
+                        <div style={{ aspectRatio: '16/10', background: 'var(--color-bg)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden' }}>
+                          {s.file_path && <img src={`file://${s.file_path}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{s.ai_app || 'Unknown'}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
           {hasSearched && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                    {filteredResults.length} results
-                  </span>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {['all', 'activity', 'screenshot', 'commit'].map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => setSelectedFilter(f)}
-                        className={selectedFilter === f ? 'btn btn-primary' : 'btn btn-secondary'}
-                        style={{ fontSize: '11px', padding: '6px 10px' }}
-                      >
-                        {f.charAt(0).toUpperCase() + f.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                  {results.length} results found
+                </span>
               </div>
 
               {loading ? (
@@ -250,15 +214,15 @@ export default function SearchPage() {
                   <div style={{ width: 40, height: 40, border: '3px solid var(--color-border)', borderTopColor: 'var(--color-purple)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
                   <p style={{ color: 'var(--color-text-secondary)' }}>Searching your memory...</p>
                 </div>
-              ) : filteredResults.length === 0 ? (
+              ) : results.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 0' }}>
                   <SearchIcon style={{ width: 48, height: 48, color: 'var(--color-text-muted)', marginBottom: 16 }} />
                   <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)', marginBottom: 8 }}>No results found</h3>
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Try different keywords or broaden your search</p>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Try different keywords</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {filteredResults.map((result, i) => {
+                  {results.map((result, i) => {
                     const Icon = getIcon(result.type);
                     const color = getTypeColor(result.type);
                     return (
@@ -268,7 +232,8 @@ export default function SearchPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.03 }}
                         className="card card-interactive"
-                        style={{ padding: '16px 20px' }}
+                        style={{ padding: '16px 20px', cursor: 'pointer' }}
+                        onClick={() => handleResultClick(result)}
                       >
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
                           <div style={{ width: 40, height: 40, borderRadius: '12px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -283,10 +248,8 @@ export default function SearchPage() {
                             </div>
                             <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' }}>{result.title}</div>
                             {result.snippet && (
-                              <div
-                                style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}
-                                dangerouslySetInnerHTML={{ __html: result.snippet }}
-                              />
+                              <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}
+                                dangerouslySetInnerHTML={{ __html: result.snippet }} />
                             )}
                           </div>
                           <ArrowRight style={{ width: 16, height: 16, color: 'var(--color-text-muted)', flexShrink: 0, marginTop: 4 }} />

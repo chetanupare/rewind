@@ -128,10 +128,29 @@ function toggleOmnibar(): void {
 }
 
 function createTray(): void {
-  const iconPath = path.join(__dirname, '..', '..', 'electron-app', 'build', 'icon.png');
   let icon: nativeImage;
   
-  if (fs.existsSync(iconPath)) {
+  // Try multiple icon paths
+  const iconPaths = [
+    path.join(__dirname, 'icon.png'),
+    path.join(process.resourcesPath, 'icon.png'),
+    path.join(__dirname, '..', '..', 'packages', 'ui', 'public', 'assets', 'brand', 'icon.png'),
+  ];
+  
+  let iconPath = '';
+  for (const p of iconPaths) {
+    if (fs.existsSync(p)) {
+      iconPath = p;
+      break;
+    }
+  }
+  
+  if (iconPath) {
+    icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
+  } else {
+    // Create a simple colored icon
+    icon = nativeImage.createEmpty();
+  }
     icon = nativeImage.createFromPath(iconPath);
   } else {
     icon = nativeImage.createEmpty();

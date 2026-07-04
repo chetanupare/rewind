@@ -74,7 +74,7 @@ while ($true) {
         
         $output = "$procId|$name|$procPath|$title|$($rect.Left)|$($rect.Top)|$w|$h"
         
-        if ($title -ne $lastTitle) {
+        if ($title -ne $lastTitle -and $title.Length -gt 0) {
             Write-Output $output
             $lastTitle = $title
         }
@@ -93,7 +93,7 @@ export class WindowTracker {
     private bus: EventBus,
     private db: Database
   ) {
-    this.scriptPath = path.join(os.tmpdir(), `rewindx-window-tracker.ps1`);
+    this.scriptPath = path.join(os.tmpdir(), `rewindx-window-${process.pid}.ps1`);
   }
 
   async start(): Promise<void> {
@@ -123,24 +123,14 @@ export class WindowTracker {
       });
 
       this.psProcess.on('exit', (code) => {
-        log.warn({ code }, 'Window tracker process exited, restarting...');
-        setTimeout(() => this.start(), 1000);
+        log.warn({ code }, 'Window tracker exited, restarting...');
+        setTimeout(() => this.start(), 2000);
       });
 
-      log.info('Window tracker started with persistent PowerShell process');
+      log.info('Window tracker started');
     } catch (err) {
       log.warn({ err }, 'Failed to start window tracker');
     }
-  }
-
-  async stop(): Promise<void> {
-    if (this.psProcess) {
-      this.psProcess.kill();
-      this.psProcess = null;
-    }
-    try {
-      await fs.promises.unlink(this.scriptPath);
-    } catch {}
   }
 
   private processOutput(line: string): void {
@@ -154,6 +144,8 @@ export class WindowTracker {
       const y = parseInt(yStr, 10) || 0;
       const width = parseInt(wStr, 10) || 0;
       const height = parseInt(hStr, 10) || 0;
+
+      if (!name || name === 'Unknown' || !title) return;
 
       const currentWindow: WinInfo = {
         title: title || '',
@@ -181,24 +173,20 @@ export class WindowTracker {
 
         const appName = currentWindow.owner?.name ?? 'Unknown';
         const executable = currentWindow.owner?.path?.split('\\').pop() ?? 'unknown.exe';
-        const pidNum = currentWindow.owner?.processId ?? 0;
-        const windowTitle = currentWindow.title ?? '';
 
         this.bus.emit('WINDOW_CHANGED', 'window-tracker', {
           appName,
           executable,
-          pid: pidNum,
-          windowTitle,
+          pid: currentWindow.owner?.processId ?? 0,
+          windowTitle: currentWindow.title ?? '',
           windowBounds: currentWindow.bounds || { x: 0, y: 0, width: 0, height: 0 },
-          monitor: { index: 0, name: 'Primary', width: 1920, height: 1080, isPrimary: true },
-          monitorCount: 1,
         });
 
         this.storeActivity({
           timestamp: now.toISOString(),
           appName,
           appExecutable: executable,
-          windowTitle,
+          windowTitle: currentWindow.title ?? '',
           durationSeconds,
         });
 
@@ -238,5 +226,15 @@ export class WindowTracker {
     } catch (err) {
       log.warn({ err }, 'Failed to store activity');
     }
+  }
+
+  async stop(): Promise<void> {
+    if (this.psProcess) {
+      this.psProcess.kill();
+      this.psProcess = null;
+    }
+    try {
+      await fs.promises.unlink(this.scriptPath);
+    } catch {}
   }
 }
