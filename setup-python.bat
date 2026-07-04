@@ -1,85 +1,204 @@
 @echo off
 setlocal enabledelayedexpansion
 
-echo ========================================
-echo  RewindX - Python Dependencies Setup
-echo ========================================
+title RewindX - Python Dependencies Setup
+color 0F
+
+echo.
+echo  ╔═══════════════════════════════════════════════════════════╗
+echo  ║         RewindX - Python Dependencies Setup              ║
+echo  ╚═══════════════════════════════════════════════════════════╝
 echo.
 
-:: Check if Python is installed
+:: Check Python
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Python is not installed or not in PATH.
+    echo  [ERROR] Python is not installed or not in PATH
     echo.
-    echo Please install Python 3.8+ from https://www.python.org/downloads/
-    echo Make sure to check "Add Python to PATH" during installation.
+    echo  Please install Python 3.8+ from:
+    echo  https://www.python.org/downloads/
+    echo.
+    echo  IMPORTANT: Check "Add Python to PATH" during installation
     echo.
     pause
     exit /b 1
 )
 
-echo [1/6] Checking Python version...
-python --version
+for /f "tokens=2" %%i in ('python --version 2^>^&1') do set PYTHON_VERSION=%%i
+echo  [OK] Python %PYTHON_VERSION% detected
 echo.
 
-:: Create virtual environment if it doesn't exist
+:: Setup virtual environment
 set VENV_DIR=%APPDATA%\RewindX\python-env
+echo  [1/5] Setting up virtual environment...
+echo        Location: %VENV_DIR%
+
 if not exist "%VENV_DIR%" (
-    echo [2/6] Creating virtual environment...
-    python -m venv "%VENV_DIR%"
+    echo        Creating new environment...
+    python -m venv "%VENV_DIR%" 2>&1
     if errorlevel 1 (
-        echo [ERROR] Failed to create virtual environment
+        echo        [ERROR] Failed to create virtual environment
         pause
         exit /b 1
     )
+    echo        [OK] Virtual environment created
 ) else (
-    echo [2/6] Virtual environment exists
+    echo        [OK] Virtual environment exists
 )
 echo.
 
-:: Activate virtual environment
+:: Activate
 call "%VENV_DIR%\Scripts\activate.bat"
 
 :: Upgrade pip
-echo [3/6] Upgrading pip...
-python -m pip install --upgrade pip --quiet
+echo  [2/5] Upgrading pip...
+python -m pip install --upgrade pip --quiet 2>&1 | findstr /V "already satisfied"
+echo        [OK] pip updated
 echo.
 
-:: Install core dependencies
-echo [4/6] Installing core dependencies (this may take 5-10 minutes)...
+:: Install dependencies with progress
+echo  [3/5] Installing dependencies...
+echo.
+echo  ┌─────────────────────────────────────────────────────────┐
+echo  │ Package              Size        Status                 │
+echo  ├─────────────────────────────────────────────────────────┤
+
+:: OCR Libraries
+echo  │                                                      │
+echo  │  OCR Libraries                                       │
+echo  │ ──────────────────────────────────────────────────── │
+
+echo  │ Installing Pillow (image processing)...              │
+pip install Pillow>=10.0.0 --quiet 2>&1 | findstr /V "already satisfied"
+echo  │ [OK] Pillow installed                                │
+
+echo  │ Installing pytesseract (OCR wrapper)...              │
+pip install pytesseract>=0.3.10 --quiet 2>&1 | findstr /V "already satisfied"
+echo  │ [OK] pytesseract installed                           │
+
+echo  │ Installing EasyOCR (~80MB, lightweight OCR)...        │
+pip install easyocr>=1.7.0 2>&1 | findstr /V "already satisfied" | findstr /I "installing installed downloaded"
+echo  │ [OK] EasyOCR installed                               │
+
+echo  │                                                      │
+echo  │  Document Processing                                 │
+echo  │ ──────────────────────────────────────────────────── │
+
+echo  │ Installing PyMuPDF (PDF extraction)...               │
+pip install PyMuPDF>=1.23.0 --quiet 2>&1 | findstr /V "already satisfied"
+echo  │ [OK] PyMuPDF installed                               │
+
+echo  │ Installing python-docx (Word documents)...           │
+pip install python-docx>=0.8.11 --quiet 2>&1 | findstr /V "already satisfied"
+echo  │ [OK] python-docx installed                           │
+
+echo  │ Installing python-pptx (PowerPoint)...               │
+pip install python-pptx>=0.6.21 --quiet 2>&1 | findstr /V "already satisfied"
+echo  │ [OK] python-pptx installed                           │
+
+echo  │ Installing openpyxl (Excel)...                       │
+pip install openpyxl>=3.1.0 --quiet 2>&1 | findstr /V "already satisfied"
+echo  │ [OK] openpyxl installed                              │
+
+echo  │                                                      │
+echo  │  NLP & Entity Recognition                            │
+echo  │ ──────────────────────────────────────────────────── │
+
+echo  │ Installing spaCy (~40MB, NLP library)...             │
+pip install spacy>=3.7.0 2>&1 | findstr /V "already satisfied" | findstr /I "installing installed downloaded"
+echo  │ [OK] spaCy installed                                 │
+
+echo  │ Downloading English language model...                │
+python -m spacy download en_core_web_sm --quiet 2>&1
+echo  │ [OK] English model downloaded                        │
+
+echo  │                                                      │
+echo  │  Utilities                                           │
+echo  │ ──────────────────────────────────────────────────── │
+
+echo  │ Installing NetworkX (graph algorithms)...            │
+pip install networkx>=3.1 --quiet 2>&1 | findstr /V "already satisfied"
+echo  │ [OK] NetworkX installed                              │
+
+echo  │ Installing NumPy (math)...                           │
+pip install numpy>=1.24.0 --quiet 2>&1 | findstr /V "already satisfied"
+echo  │ [OK] NumPy installed                                 │
+
+echo  │                                                      │
+echo  └─────────────────────────────────────────────────────────┘
 echo.
 
-echo   - Installing OCR libraries...
-pip install paddlepaddle paddleocr easyocr pytesseract Pillow --quiet 2>nul
-if errorlevel 1 (
-    echo   [WARN] Some OCR libraries failed, trying alternatives...
-    pip install easyocr pytesseract Pillow --quiet 2>nul
+:: Verify installation
+echo  [4/5] Verifying installation...
+echo.
+echo  ┌─────────────────────────────────────────────────────────┐
+
+set ALL_OK=1
+
+python -c "import easyocr; print('  [OK] EasyOCR - Ready')" 2>nul || (
+    echo  [WARN] EasyOCR - Not available
+    set ALL_OK=0
 )
 
-echo   - Installing document processing...
-pip install PyMuPDF python-docx python-pptx openpyxl --quiet 2>nul
+python -c "import fitz; print('  [OK] PyMuPDF - Ready')" 2>nul || (
+    echo  [WARN] PyMuPDF - Not available
+    set ALL_OK=0
+)
 
-echo   - Installing NLP libraries...
-pip install spacy --quiet 2>nul
-python -m spacy download en_core_web_sm --quiet 2>nul
+python -c "import docx; print('  [OK] python-docx - Ready')" 2>nul || (
+    echo  [WARN] python-docx - Not available
+    set ALL_OK=0
+)
 
-echo   - Installing utilities...
-pip install networkx numpy requests tqdm --quiet 2>nul
+python -c "import spacy; print('  [OK] spaCy - Ready')" 2>nul || (
+    echo  [WARN] spaCy - Not available
+    set ALL_OK=0
+)
 
+python -c "import networkx; print('  [OK] NetworkX - Ready')" 2>nul || (
+    echo  [WARN] NetworkX - Not available
+    set ALL_OK=0
+)
+
+python -c "import numpy; print('  [OK] NumPy - Ready')" 2>nul || (
+    echo  [WARN] NumPy - Not available
+    set ALL_OK=0
+)
+
+echo  └─────────────────────────────────────────────────────────┘
 echo.
-echo [5/6] Verifying installation...
 
-:: Test imports
-python -c "import easyocr; print('  [OK] EasyOCR')" 2>nul || echo   [WARN] EasyOCR not available
-python -c "import fitz; print('  [OK] PyMuPDF')" 2>nul || echo   [WARN] PyMuPDF not available
-python -c "import docx; print('  [OK] python-docx')" 2>nul || echo   [WARN] python-docx not available
-python -c "import spacy; print('  [OK] spaCy')" 2>nul || echo   [WARN] spaCy not available
-python -c "import networkx; print('  [OK] NetworkX')" 2>nul || echo   [WARN] NetworkX not available
+:: Summary
+echo  [5/5] Setup Summary
+echo.
+echo  ┌─────────────────────────────────────────────────────────┐
+echo  │                                                         │
 
+if %ALL_OK%==1 (
+    echo  │  All dependencies installed successfully!             │
+    echo  │                                                         │
+    echo  │  RewindX now has full capabilities:                    │
+    echo  │    ✓ OCR (EasyOCR + pytesseract)                      │
+    echo  │    ✓ Document Intelligence (PDF, DOCX, PPTX, XLSX)    │
+    echo  │    ✓ Entity Recognition (spaCy)                       │
+    echo  │    ✓ Knowledge Graph (NetworkX)                       │
+    echo  │    ✓ Advanced Search                                  │
+) else (
+    echo  │  Some dependencies could not be installed.            │
+    echo  │                                                         │
+    echo  │  Core features will still work:                       │
+    echo  │    ✓ Window tracking                                  │
+    echo  │    ✓ Screenshots                                      │
+    echo  │    ✓ AI Analysis (Ollama)                             │
+    echo  │    ✓ Search (SQLite FTS)                              │
+    echo  │    ✓ All Brain Modules                                │
+    echo  │                                                         │
+    echo  │  Run this script again to retry failed installations.  │
+)
+
+echo  │                                                         │
+echo  └─────────────────────────────────────────────────────────┘
 echo.
-echo [6/6] Setup complete!
-echo.
-echo RewindX Python dependencies are installed.
-echo You can now close this window and start RewindX.
+echo  You can close this window and start RewindX.
 echo.
 pause
