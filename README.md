@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/chetanupare/rewind/main/packages/ui/public/assets/brand/text-logo.png" alt="RewindX" width="320" />
+<img src="packages/ui/public/assets/brand/text-logo.png" alt="RewindX" width="320" />
 
 <br />
 <br />
