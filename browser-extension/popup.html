@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      width: 320px;
+      background: #090B16;
+      color: #fff;
+      padding: 16px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #6D4CFF, #FF4FA3);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo svg { width: 18px; height: 18px; }
+    .title { font-size: 16px; font-weight: 700; }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(0,212,126,0.1);
+      border: 1px solid rgba(0,212,126,0.2);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 12px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00D47E;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .stat {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-value { font-size: 24px; font-weight: 700; color: #6D4CFF; }
+    .stat-label { font-size: 11px; color: #6B7280; margin-top: 4px; }
+    .history {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .history-item {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 11px;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-title {
+      color: #fff;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-url {
+      color: #6B7280;
+      font-size: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .footer {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 10px;
+      color: #6B7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="title">RewindX</div>
+  </div>
+
+  <div class="status">
+    <div class="status-dot"></div>
+    <span>Connected to RewindX</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value" id="tabCount">0</div>
+      <div class="stat-label">Tabs Tracked</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="timeSpent">0m</div>
+      <div class="stat-label">Time Today</div>
+    </div>
+  </div>
+
+  <div class="history" id="history">
+    <div style="text-align: center; color: #6B7280; padding: 20px; font-size: 12px;">
+      No browsing activity yet
+    </div>
+  </div>
+
+  <div class="footer">
+    RewindX Browser Extension v1.0
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
