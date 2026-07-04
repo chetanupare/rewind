@@ -10,209 +10,224 @@ import {
   Clock,
   Search,
   Filter,
+  Bookmark,
+  Pin,
+  Trash2,
 } from 'lucide-react';
+
+declare global {
+  interface Window {
+    electronAPI: {
+      getMemories: (options?: { type?: string; limit?: number }) => Promise<any[]>;
+      createBookmark: (data: { type: string; title: string; description?: string; tags?: string[] }) => Promise<number>;
+      toggleBookmarkPin: (id: number) => Promise<boolean>;
+      deleteBookmark: (id: number) => Promise<boolean>;
+    };
+  }
+}
 
 interface MemoryItem {
   id: number;
-  type: 'meeting' | 'commit' | 'session' | 'browser' | 'document';
+  type: string;
   title: string;
-  source: string;
+  description: string;
   timestamp: string;
-  preview: string;
+  tags: string[];
+  pinned: boolean;
 }
 
 export default function Memory() {
   const [memories, setMemories] = useState<MemoryItem[]>([]);
   const [filter, setFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadMemories();
-  }, []);
+  }, [filter]);
 
   const loadMemories = async () => {
-    // Mock data for demo
-    const mockMemories: MemoryItem[] = [
-      {
-        id: 1,
-        type: 'meeting',
-        title: 'Team Standup',
-        source: 'Zoom',
-        timestamp: '2 hours ago',
-        preview: 'Discussed Q3 roadmap and sprint planning...',
-      },
-      {
-        id: 2,
-        type: 'commit',
-        title: 'feat: add user authentication',
-        source: 'GitHub',
-        timestamp: '3 hours ago',
-        preview: 'Added JWT token validation and refresh logic...',
-      },
-      {
-        id: 3,
-        type: 'session',
-        title: 'VS Code - RewindX',
-        source: 'VS Code',
-        timestamp: '4 hours ago',
-        preview: 'Working on UI components and styling...',
-      },
-      {
-        id: 4,
-        type: 'browser',
-        title: 'React Documentation',
-        source: 'Chrome',
-        timestamp: '5 hours ago',
-        preview: 'Reading about hooks and state management...',
-      },
-      {
-        id: 5,
-        type: 'document',
-        title: 'Project Proposal.pdf',
-        source: 'Adobe Acrobat',
-        timestamp: 'Yesterday',
-        preview: 'Reviewed Q3 project proposal and budget...',
-      },
-    ];
-    setMemories(mockMemories);
+    setLoading(true);
+    try {
+      const data = await window.electronAPI.getMemories({
+        type: filter === 'all' ? undefined : filter,
+        limit: 100,
+      });
+      setMemories(data);
+    } catch (err) {
+      console.error('Failed to load memories:', err);
+    }
+    setLoading(false);
   };
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'meeting':
-        return MessageSquare;
-      case 'commit':
-        return GitCommit;
-      case 'session':
-        return Code;
-      case 'browser':
-        return Globe;
-      case 'document':
-        return FileText;
-      default:
-        return Brain;
+      case 'meeting': return MessageSquare;
+      case 'commit': return GitCommit;
+      case 'session': return Code;
+      case 'browser': return Globe;
+      case 'document': return FileText;
+      case 'screenshot': return FileText;
+      default: return Brain;
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'meeting':
-        return 'bg-blue-500/20 text-blue-400';
-      case 'commit':
-        return 'bg-green-500/20 text-green-400';
-      case 'session':
-        return 'bg-purple/20 text-purple';
-      case 'browser':
-        return 'bg-orange-500/20 text-orange-400';
-      case 'document':
-        return 'bg-pink/20 text-pink';
-      default:
-        return 'bg-surface text-text-secondary';
+      case 'meeting': return '#3B82F6';
+      case 'commit': return '#00D47E';
+      case 'session': return '#6D4CFF';
+      case 'browser': return '#F59E0B';
+      case 'document': return '#FF4FA3';
+      case 'screenshot': return '#8B5CF6';
+      default: return '#6B7280';
     }
   };
 
+  const handleTogglePin = async (id: number) => {
+    await window.electronAPI.toggleBookmarkPin(id);
+    loadMemories();
+  };
+
+  const handleDelete = async (id: number) => {
+    await window.electronAPI.deleteBookmark(id);
+    loadMemories();
+  };
+
   const filteredMemories = memories.filter((m) => {
-    if (filter !== 'all' && m.type !== filter) return false;
     if (searchQuery && !m.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
+  const pinnedMemories = filteredMemories.filter(m => m.pinned);
+  const otherMemories = filteredMemories.filter(m => !m.pinned);
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <header className="px-8 py-6 border-b border-border">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-text">Memory</h1>
-            <p className="text-text-secondary mt-1">
-              Your AI remembers everything you've worked on
-            </p>
+    <>
+      <div className="page-header">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Brain style={{ width: 20, height: 20, color: 'var(--color-purple)' }} />
+            <h1>Memory</h1>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="input-icon">
+              <Search />
               <input
                 type="text"
                 placeholder="Search memories..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="input-area pl-10 pr-4 py-2 w-64 text-sm"
+                className="input"
+                style={{ width: 200, fontSize: '12px', padding: '6px 10px 6px 36px' }}
               />
             </div>
-            <button className="btn-ghost flex items-center gap-2">
-              <Filter className="w-4 h-4" />
-              Filter
-            </button>
           </div>
         </div>
-
-        {/* Filters */}
-        <div className="flex items-center gap-2">
-          {['all', 'meeting', 'commit', 'session', 'browser', 'document'].map((f) => (
+        <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+          {['all', 'meeting', 'commit', 'session', 'browser', 'document', 'screenshot'].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                filter === f
-                  ? 'bg-purple text-white'
-                  : 'bg-surface text-text-secondary hover:text-text'
-              }`}
+              className={filter === f ? 'btn btn-primary' : 'btn btn-secondary'}
+              style={{ fontSize: '11px', padding: '6px 12px' }}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
           ))}
         </div>
-      </header>
+      </div>
 
-      {/* Memory Grid */}
-      <div className="flex-1 overflow-y-auto px-8 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredMemories.map((memory, i) => {
-            const Icon = getIcon(memory.type);
-            return (
-              <motion.div
-                key={memory.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.2 }}
-                className="card p-5 cursor-pointer group"
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTypeColor(memory.type)}`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-text truncate group-hover:text-purple transition-colors">
-                      {memory.title}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-text-muted">{memory.source}</span>
-                      <span className="text-xs text-text-muted">•</span>
-                      <span className="text-xs text-text-muted flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {memory.timestamp}
-                      </span>
-                    </div>
-                    <p className="text-xs text-text-secondary mt-2 line-clamp-2">
-                      {memory.preview}
-                    </p>
-                  </div>
+      <div className="page-body">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-muted)' }}>Loading memories...</div>
+        ) : (
+          <>
+            {pinnedMemories.length > 0 && (
+              <div style={{ marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Pin style={{ width: 14, height: 14 }} /> Pinned
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                  {pinnedMemories.map((memory, i) => (
+                    <MemoryCard key={memory.id} memory={memory} index={i} getIcon={getIcon} getTypeColor={getTypeColor} onTogglePin={handleTogglePin} onDelete={handleDelete} />
+                  ))}
                 </div>
-              </motion.div>
-            );
-          })}
-        </div>
+              </div>
+            )}
 
-        {filteredMemories.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <Brain className="w-12 h-12 text-text-muted mb-4" />
-            <h3 className="text-lg font-semibold text-text mb-2">No memories found</h3>
-            <p className="text-sm text-text-secondary">
-              {searchQuery ? 'Try a different search term' : 'Start working to build your memory'}
-            </p>
-          </div>
+            <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '12px' }}>
+              {pinnedMemories.length > 0 ? 'All Memories' : 'Memories'}
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+              {otherMemories.map((memory, i) => (
+                <MemoryCard key={memory.id} memory={memory} index={i} getIcon={getIcon} getTypeColor={getTypeColor} onTogglePin={handleTogglePin} onDelete={handleDelete} />
+              ))}
+            </div>
+
+            {filteredMemories.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                <Brain style={{ width: 48, height: 48, color: 'var(--color-text-muted)', marginBottom: 16 }} />
+                <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)', marginBottom: 8 }}>No memories yet</h3>
+                <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Start working to build your memory</p>
+              </div>
+            )}
+          </>
         )}
       </div>
-    </div>
+    </>
+  );
+}
+
+function MemoryCard({ memory, index, getIcon, getTypeColor, onTogglePin, onDelete }: {
+  memory: MemoryItem;
+  index: number;
+  getIcon: (type: string) => any;
+  getTypeColor: (type: string) => string;
+  onTogglePin: (id: number) => void;
+  onDelete: (id: number) => void;
+}) {
+  const Icon = getIcon(memory.type);
+  const color = getTypeColor(memory.type);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03 }}
+      className="card card-interactive"
+      style={{ padding: '16px' }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+        <div style={{ width: 36, height: 36, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${color}15`, flexShrink: 0 }}>
+          <Icon style={{ width: 16, height: 16, color }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' }}>{memory.title}</div>
+          <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+            <Clock style={{ width: 10, height: 10, verticalAlign: 'middle', marginRight: 4 }} />
+            {memory.timestamp ? new Date(memory.timestamp).toLocaleDateString() : ''}
+          </div>
+          {memory.description && (
+            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '8px', lineHeight: 1.5 }}>{memory.description}</div>
+          )}
+          {memory.tags.length > 0 && (
+            <div style={{ display: 'flex', gap: '4px', marginTop: '8px', flexWrap: 'wrap' }}>
+              {memory.tags.map((tag) => (
+                <span key={tag} className="tag" style={{ fontSize: '10px' }}>{tag}</span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onTogglePin(memory.id)}>
+            <Pin style={{ width: 14, height: 14, color: memory.pinned ? 'var(--color-purple)' : undefined }} />
+          </button>
+          <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onDelete(memory.id)}>
+            <Trash2 style={{ width: 14, height: 14 }} />
+          </button>
+        </div>
+      </div>
+    </motion.div>
   );
 }

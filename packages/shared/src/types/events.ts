@@ -39,7 +39,15 @@ export type EventType =
   | 'EMBEDDING_GENERATED'
   | 'KNOWLEDGE_GRAPH_UPDATED'
   | 'FLOW_STATE_CHANGED'
-  | 'STANDUP_READY';
+  | 'STANDUP_READY'
+  | 'MEETING_STARTED'
+  | 'MEETING_ENDED'
+  | 'BOOKMARK_CREATED'
+  | 'FOCUS_SESSION_STARTED'
+  | 'FOCUS_SESSION_ENDED'
+  | 'REMINDER_DUE'
+  | 'NOTIFICATION'
+  | 'CREATE_BOOKMARK';
 
 export type CollectorSource =
   | 'window-tracker'
@@ -57,7 +65,13 @@ export type CollectorSource =
   | 'learning-engine'
   | 'flow-state-tracker'
   | 'thrashing-detector'
-  | 'scheduler';
+  | 'scheduler'
+  | 'project-detector'
+  | 'meeting-intelligence'
+  | 'memory-bookmarks'
+  | 'focus-analytics'
+  | 'nl-automation'
+  | 'cross-memory-linking';
 
 export interface EventPayload {
   id: string;

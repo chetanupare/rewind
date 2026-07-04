@@ -284,6 +284,32 @@ Return JSON: {"trigger": "...", "condition": "...", "action": "...", "params": {
     }
   }
 
+  private async checkRules(): Promise<void> {
+    try {
+      const rules = this.db.prepare(`
+        SELECT * FROM automation_rules WHERE enabled = 1
+      `).all() as AutomationRule[];
+
+      for (const rule of rules) {
+        try {
+          const params = JSON.parse(rule.params || '{}');
+          
+          if (rule.last_triggered) {
+            const lastTriggered = new Date(rule.last_triggered).getTime();
+            const now = Date.now();
+            const cooldownMs = 60 * 60 * 1000;
+            if (now - lastTriggered < cooldownMs) continue;
+          }
+
+        } catch (err) {
+          log.debug({ err, ruleId: rule.id }, 'Failed to check rule');
+        }
+      }
+    } catch (err) {
+      log.debug({ err }, 'Failed to check rules');
+    }
+  }
+
   private async evaluateRules(trigger: string, data: Record<string, unknown>): Promise<void> {
     const rules = this.db.prepare(`
       SELECT * FROM automation_rules WHERE trigger_type = ? AND enabled = 1

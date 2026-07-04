@@ -14,7 +14,14 @@ import {
 declare global {
   interface Window {
     electronAPI: {
-      chat: (message: string) => Promise<{ role: string; content: string }>;
+      getDevEvents: (options?: { type?: string; limit?: number; date?: string }) => Promise<any[]>;
+      getDevStats: (date: string) => Promise<{
+        commits: number;
+        screenshots: number;
+        terminalSessions: number;
+        fileChanges: number;
+        activeHours: number;
+      }>;
     };
   }
 }
@@ -47,26 +54,29 @@ export default function DeveloperMode() {
   });
   const [filter, setFilter] = useState('all');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadEvents();
+    loadData();
   }, [date, filter]);
 
-  const loadEvents = async () => {
-    const mockEvents: DevEvent[] = [
-      { id: 1, timestamp: new Date().toISOString(), type: 'commit', app: 'git', project: 'rewindx', description: 'feat: add developer mode' },
-      { id: 2, timestamp: new Date(Date.now() - 300000).toISOString(), type: 'screenshot', app: 'VS Code', project: 'rewindx', description: 'Screenshot captured' },
-      { id: 3, timestamp: new Date(Date.now() - 600000).toISOString(), type: 'terminal', app: 'Terminal', project: '', description: 'npm run build' },
-      { id: 4, timestamp: new Date(Date.now() - 900000).toISOString(), type: 'file_change', app: 'VS Code', project: 'rewindx', description: 'developer-mode.ts' },
-    ];
-    setEvents(mockEvents);
-    setStats({
-      commits: 5,
-      screenshots: 12,
-      terminalSessions: 3,
-      fileChanges: 24,
-      activeHours: 6,
-    });
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [eventsData, statsData] = await Promise.all([
+        window.electronAPI.getDevEvents({
+          type: filter === 'all' ? undefined : filter,
+          date,
+          limit: 100,
+        }),
+        window.electronAPI.getDevStats(date),
+      ]);
+      setEvents(eventsData);
+      setStats(statsData);
+    } catch (err) {
+      console.error('Failed to load dev data:', err);
+    }
+    setLoading(false);
   };
 
   const getTypeIcon = (type: string) => {
@@ -89,10 +99,6 @@ export default function DeveloperMode() {
     }
   };
 
-  const filteredEvents = filter === 'all'
-    ? events
-    : events.filter(e => e.type === filter);
-
   return (
     <>
       <div className="page-header">
@@ -101,15 +107,13 @@ export default function DeveloperMode() {
             <Code style={{ width: 20, height: 20, color: 'var(--color-purple)' }} />
             <h1>Developer Mode</h1>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="input"
-              style={{ width: 150, fontSize: '12px', padding: '6px 10px' }}
-            />
-          </div>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="input"
+            style={{ width: 150, fontSize: '12px', padding: '6px 10px' }}
+          />
         </div>
       </div>
 
@@ -150,35 +154,45 @@ export default function DeveloperMode() {
         </div>
 
         {/* Event Feed */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {filteredEvents.map((event, i) => {
-            const Icon = getTypeIcon(event.type);
-            const color = getTypeColor(event.type);
-            return (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.03 }}
-                className="card"
-                style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px' }}
-              >
-                <div style={{ width: 36, height: 36, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${color}15`, flexShrink: 0 }}>
-                  <Icon style={{ width: 16, height: 16, color }} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>{event.description}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                    {event.app} {event.project && `• ${event.project}`}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-muted)' }}>Loading events...</div>
+        ) : events.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <Code style={{ width: 48, height: 48, color: 'var(--color-text-muted)', marginBottom: 16 }} />
+            <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)', marginBottom: 8 }}>No developer events</h3>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Start coding to see your developer activity</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {events.map((event, i) => {
+              const Icon = getTypeIcon(event.type);
+              const color = getTypeColor(event.type);
+              return (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="card"
+                  style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px' }}
+                >
+                  <div style={{ width: 36, height: 36, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${color}15`, flexShrink: 0 }}>
+                    <Icon style={{ width: 16, height: 16, color }} />
                   </div>
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                  {new Date(event.timestamp).toLocaleTimeString()}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>{event.description}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                      {event.app} {event.project && `• ${event.project}`}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                    {new Date(event.timestamp).toLocaleTimeString()}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </>
   );

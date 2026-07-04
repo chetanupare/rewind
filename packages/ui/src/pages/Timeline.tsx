@@ -11,59 +11,70 @@ import {
   Image,
 } from 'lucide-react';
 
+declare global {
+  interface Window {
+    electronAPI: {
+      getTimeline: (date: string) => Promise<any[]>;
+      getScreenshotsByDate: (date: string) => Promise<any[]>;
+      getScreenshotImage: (filePath: string) => Promise<ArrayBuffer>;
+    };
+  }
+}
+
 interface TimelineEntry {
   hour: number;
-  app: string;
-  activity: string;
-  duration: string;
-  type: 'coding' | 'browsing' | 'meeting' | 'other';
+  activity_summary: string;
+  primary_app: string;
+  primary_project: string;
+  total_mouse_clicks: number;
+  total_keystrokes: number;
+  total_screenshots: number;
+  productivity_score: number;
 }
 
 export default function Timeline() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
+  const [screenshots, setScreenshots] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadTimeline();
   }, [date]);
 
+  useEffect(() => {
+    if (screenshots.length > 0 && screenshots[currentIndex]) {
+      loadImage();
+    }
+  }, [currentIndex, screenshots]);
+
   const loadTimeline = async () => {
-    // Mock data
-    const mockEntries: TimelineEntry[] = [
-      { hour: 9, app: 'VS Code', activity: 'Working on RewindX UI', duration: '2h 15m', type: 'coding' },
-      { hour: 11, app: 'Chrome', activity: 'Reading React docs', duration: '45m', type: 'browsing' },
-      { hour: 12, app: 'Slack', activity: 'Team standup', duration: '30m', type: 'meeting' },
-      { hour: 13, app: 'VS Code', activity: 'Implementing features', duration: '3h', type: 'coding' },
-      { hour: 16, app: 'Figma', activity: 'Design review', duration: '1h', type: 'meeting' },
-      { hour: 17, app: 'Terminal', activity: 'Running tests', duration: '30m', type: 'coding' },
-    ];
-    setEntries(mockEntries);
+    setLoading(true);
+    try {
+      const [timeline, shots] = await Promise.all([
+        window.electronAPI.getTimeline(date),
+        window.electronAPI.getScreenshotsByDate(date),
+      ]);
+      setEntries(timeline);
+      setScreenshots(shots);
+      if (shots.length > 0) setCurrentIndex(shots.length - 1);
+    } catch (err) {
+      console.error('Failed to load timeline:', err);
+    }
+    setLoading(false);
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'coding':
-        return 'bg-purple/20 text-purple border-purple/30';
-      case 'browsing':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'meeting':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
-      default:
-        return 'bg-surface text-text-secondary border-border';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'coding':
-        return Code;
-      case 'browsing':
-        return Globe;
-      case 'meeting':
-        return MessageSquare;
-      default:
-        return Clock;
-    }
+  const loadImage = async () => {
+    try {
+      const buffer = await window.electronAPI.getScreenshotImage(screenshots[currentIndex].file_path);
+      if (buffer) {
+        const blob = new Blob([buffer], { type: 'image/jpeg' });
+        const url = URL.createObjectURL(blob);
+        setImgSrc(url);
+      }
+    } catch {}
   };
 
   const changeDate = (days: number) => {
@@ -72,97 +83,134 @@ export default function Timeline() {
     setDate(d.toISOString().split('T')[0]);
   };
 
+  const getAppIcon = (app: string) => {
+    if (!app) return Clock;
+    const lower = app.toLowerCase();
+    if (lower.includes('code') || lower.includes('studio')) return Code;
+    if (lower.includes('chrome') || lower.includes('edge') || lower.includes('firefox')) return Globe;
+    if (lower.includes('slack') || lower.includes('teams')) return MessageSquare;
+    return Clock;
+  };
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <header className="px-8 py-6 border-b border-border">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-text">Timeline</h1>
-            <p className="text-text-secondary mt-1">
-              Your work day at a glance
-            </p>
+    <>
+      <div className="page-header">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Clock style={{ width: 20, height: 20, color: 'var(--color-purple)' }} />
+            <h1>Timeline</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button className="btn-icon" onClick={() => changeDate(-1)}>
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft style={{ width: 18, height: 18 }} />
             </button>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface border border-border">
-              <Calendar className="w-4 h-4 text-text-secondary" />
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm text-text"
-              />
-            </div>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="input"
+              style={{ width: 150, fontSize: '12px', padding: '6px 10px' }}
+            />
             <button className="btn-icon" onClick={() => changeDate(1)}>
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight style={{ width: 18, height: 18 }} />
             </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Timeline */}
-      <div className="flex-1 overflow-y-auto px-8 py-6">
-        <div className="max-w-3xl mx-auto">
-          {/* Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-8">
-            {[
-              { label: 'Total Time', value: '7h 45m', color: 'text-text' },
-              { label: 'Coding', value: '5h 45m', color: 'text-purple' },
-              { label: 'Meetings', value: '1h 30m', color: 'text-green-400' },
-              { label: 'Research', value: '45m', color: 'text-blue-400' },
-            ].map((stat) => (
-              <div key={stat.label} className="card p-4 text-center">
-                <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-                <div className="text-xs text-text-muted mt-1">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Timeline Entries */}
-          <div className="relative">
-            <div className="absolute left-8 top-0 bottom-0 w-px bg-border" />
-            <div className="space-y-4">
-              {entries.map((entry, i) => {
-                const Icon = getTypeIcon(entry.type);
-                return (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="flex gap-4"
-                  >
-                    <div className="w-16 text-right flex-shrink-0">
-                      <span className="text-sm font-semibold text-text-secondary">
-                        {entry.hour.toString().padStart(2, '0')}:00
-                      </span>
-                    </div>
-                    <div className="relative flex-shrink-0">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${getTypeColor(entry.type)}`}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-                    </div>
-                    <div className="flex-1 card p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-sm font-semibold text-text">{entry.app}</h3>
-                          <p className="text-xs text-text-secondary mt-0.5">{entry.activity}</p>
-                        </div>
-                        <span className="text-xs font-semibold text-text-muted bg-surface px-2 py-1 rounded-lg">
-                          {entry.duration}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <div className="page-body">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-muted)' }}>Loading timeline...</div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>
+            {/* Timeline */}
+            <div>
+              {entries.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                  <Clock style={{ width: 48, height: 48, color: 'var(--color-text-muted)', marginBottom: 16 }} />
+                  <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)', marginBottom: 8 }}>No activity for this date</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Start using your computer to build a timeline</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {entries.map((entry, i) => {
+                    const Icon = getAppIcon(entry.primary_app);
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.03 }}
+                        className="card"
+                        style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px' }}
+                      >
+                        <div style={{ width: 48, textAlign: 'right', flexShrink: 0 }}>
+                          <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text)' }}>
+                            {entry.hour.toString().padStart(2, '0')}:00
+                          </span>
+                        </div>
+                        <div style={{ width: 36, height: 36, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-purple-subtle)' }}>
+                          <Icon style={{ width: 16, height: 16, color: 'var(--color-purple)' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
+                            {entry.primary_app || 'Unknown App'}
+                          </div>
+                          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                            {entry.activity_summary || 'No activity summary'}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                            {entry.total_screenshots} screenshots
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                            {entry.total_keystrokes} keystrokes
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Time Travel */}
+            <div>
+              <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text)', marginBottom: '12px' }}>Time Travel</h3>
+              <div className="card" style={{ padding: '16px' }}>
+                {screenshots.length > 0 ? (
+                  <div>
+                    <div style={{ aspectRatio: '16/10', borderRadius: '10px', background: 'var(--color-bg)', overflow: 'hidden', marginBottom: '12px', border: '1px solid var(--color-border)' }}>
+                      {imgSrc && <img src={imgSrc} alt="Screenshot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max={screenshots.length - 1}
+                      value={currentIndex}
+                      onChange={(e) => setCurrentIndex(parseInt(e.target.value))}
+                      style={{ width: '100%', accentColor: 'var(--color-purple)' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                        {screenshots[currentIndex]?.ai_app || 'Unknown'}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                        {currentIndex + 1} / {screenshots.length}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+                    No screenshots for this date
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

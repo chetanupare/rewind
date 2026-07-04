@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -8,9 +8,19 @@ import {
   Clock,
   MoreHorizontal,
   Pin,
-  Archive,
   Trash2,
 } from 'lucide-react';
+
+declare global {
+  interface Window {
+    electronAPI: {
+      getBookmarks: (options?: { limit?: number }) => Promise<any[]>;
+      createBookmark: (data: { type: string; title: string; description?: string; tags?: string[] }) => Promise<number>;
+      toggleBookmarkPin: (id: number) => Promise<boolean>;
+      deleteBookmark: (id: number) => Promise<boolean>;
+    };
+  }
+}
 
 interface Note {
   id: number;
@@ -22,34 +32,57 @@ interface Note {
 }
 
 export default function Notes() {
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: 1,
-      title: 'Project Ideas',
-      content: 'Build an AI-powered code review tool that analyzes PRs and provides suggestions...',
-      tags: ['ideas', 'ai'],
-      pinned: true,
-      updatedAt: '2 hours ago',
-    },
-    {
-      id: 2,
-      title: 'Meeting Notes - Sprint Planning',
-      content: 'Discussed Q3 priorities. Focus on user authentication, dashboard redesign...',
-      tags: ['meeting', 'sprint'],
-      pinned: true,
-      updatedAt: 'Yesterday',
-    },
-    {
-      id: 3,
-      title: 'React Best Practices',
-      content: 'Use custom hooks for reusable logic. Keep components small and focused...',
-      tags: ['react', 'coding'],
-      pinned: false,
-      updatedAt: '3 days ago',
-    },
-  ]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadNotes();
+  }, []);
+
+  const loadNotes = async () => {
+    setLoading(true);
+    try {
+      const bookmarks = await window.electronAPI.getBookmarks({ limit: 100 });
+      const notesData: Note[] = bookmarks.map((b: any) => ({
+        id: b.id,
+        title: b.title,
+        content: b.description || '',
+        tags: b.tags || [],
+        pinned: b.pinned,
+        updatedAt: b.created_at ? new Date(b.created_at).toLocaleDateString() : '',
+      }));
+      setNotes(notesData);
+    } catch (err) {
+      console.error('Failed to load notes:', err);
+    }
+    setLoading(false);
+  };
+
+  const handleCreateNote = async () => {
+    const title = prompt('Enter note title:');
+    if (!title) return;
+    const content = prompt('Enter note content:');
+    await window.electronAPI.createBookmark({
+      type: 'note',
+      title,
+      description: content || '',
+      tags: [],
+    });
+    loadNotes();
+  };
+
+  const handleTogglePin = async (id: number) => {
+    await window.electronAPI.toggleBookmarkPin(id);
+    loadNotes();
+  };
+
+  const handleDelete = async (id: number) => {
+    await window.electronAPI.deleteBookmark(id);
+    if (selectedNote?.id === id) setSelectedNote(null);
+    loadNotes();
+  };
 
   const filteredNotes = notes.filter((n) =>
     n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -60,104 +93,97 @@ export default function Notes() {
   const otherNotes = filteredNotes.filter((n) => !n.pinned);
 
   return (
-    <div className="flex h-full">
+    <div style={{ display: 'flex', height: '100%' }}>
       {/* Note List */}
-      <div className="w-80 border-r border-border flex flex-col">
-        <header className="p-4 border-b border-border">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-lg font-bold text-text">Notes</h1>
-            <button className="btn-primary py-2 px-3 text-xs flex items-center gap-1.5">
-              <Plus className="w-3.5 h-3.5" />
-              New
+      <div style={{ width: 300, borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text)' }}>Notes</h2>
+            <button className="btn btn-primary" style={{ fontSize: '11px', padding: '6px 12px' }} onClick={handleCreateNote}>
+              <Plus style={{ width: 14, height: 14 }} /> New
             </button>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+          <div className="input-icon">
+            <Search />
             <input
               type="text"
               placeholder="Search notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-area pl-10 pr-4 py-2 text-sm w-full"
+              className="input"
+              style={{ fontSize: '12px', padding: '8px 10px 8px 36px' }}
             />
           </div>
-        </header>
+        </div>
 
-        <div className="flex-1 overflow-y-auto p-2">
-          {pinnedNotes.length > 0 && (
-            <div className="mb-4">
-              <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider px-3 mb-2 flex items-center gap-1.5">
-                <Pin className="w-3 h-3" />
-                Pinned
-              </p>
-              {pinnedNotes.map((note) => (
-                <NoteItem
-                  key={note.id}
-                  note={note}
-                  selected={selectedNote?.id === note.id}
-                  onClick={() => setSelectedNote(note)}
-                />
-              ))}
-            </div>
-          )}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-muted)' }}>Loading...</div>
+          ) : (
+            <>
+              {pinnedNotes.length > 0 && (
+                <div style={{ marginBottom: '12px' }}>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-text-muted)', padding: '4px 12px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Pin style={{ width: 10, height: 10 }} /> Pinned
+                  </p>
+                  {pinnedNotes.map((note) => (
+                    <NoteItem key={note.id} note={note} selected={selectedNote?.id === note.id} onClick={() => setSelectedNote(note)} />
+                  ))}
+                </div>
+              )}
 
-          {otherNotes.length > 0 && (
-            <div>
-              <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider px-3 mb-2">
-                Recent
-              </p>
-              {otherNotes.map((note) => (
-                <NoteItem
-                  key={note.id}
-                  note={note}
-                  selected={selectedNote?.id === note.id}
-                  onClick={() => setSelectedNote(note)}
-                />
-              ))}
-            </div>
+              {otherNotes.length > 0 && (
+                <div>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-text-muted)', padding: '4px 12px', marginBottom: '4px' }}>Recent</p>
+                  {otherNotes.map((note) => (
+                    <NoteItem key={note.id} note={note} selected={selectedNote?.id === note.id} onClick={() => setSelectedNote(note)} />
+                  ))}
+                </div>
+              )}
+
+              {filteredNotes.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                  <FileText style={{ width: 32, height: 32, color: 'var(--color-text-muted)', marginBottom: 12 }} />
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>No notes yet</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
 
       {/* Note Content */}
-      <div className="flex-1 flex flex-col">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {selectedNote ? (
           <>
-            <header className="px-8 py-4 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 {selectedNote.tags.map((tag) => (
-                  <span key={tag} className="tag text-[10px]">
-                    {tag}
-                  </span>
+                  <span key={tag} className="tag" style={{ fontSize: '10px' }}>{tag}</span>
                 ))}
               </div>
-              <div className="flex items-center gap-1">
-                <button className="btn-icon w-8 h-8">
-                  <Archive className="w-4 h-4" />
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button className="btn-icon" style={{ width: 32, height: 32 }} onClick={() => handleTogglePin(selectedNote.id)}>
+                  <Pin style={{ width: 16, height: 16, color: selectedNote.pinned ? 'var(--color-purple)' : undefined }} />
                 </button>
-                <button className="btn-icon w-8 h-8">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                <button className="btn-icon w-8 h-8">
-                  <MoreHorizontal className="w-4 h-4" />
+                <button className="btn-icon" style={{ width: 32, height: 32 }} onClick={() => handleDelete(selectedNote.id)}>
+                  <Trash2 style={{ width: 16, height: 16 }} />
                 </button>
               </div>
-            </header>
-            <div className="flex-1 overflow-y-auto px-8 py-6">
-              <h2 className="text-2xl font-bold text-text mb-4">{selectedNote.title}</h2>
-              <div className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">
-                {selectedNote.content}
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text)', marginBottom: '16px' }}>{selectedNote.title}</h2>
+              <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                {selectedNote.content || 'No content'}
               </div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <FileText className="w-12 h-12 text-text-muted mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-text mb-2">Select a note</h3>
-              <p className="text-sm text-text-secondary">
-                Choose a note from the list to view its contents
-              </p>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+              <FileText style={{ width: 48, height: 48, color: 'var(--color-text-muted)', marginBottom: 16 }} />
+              <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)', marginBottom: 8 }}>Select a note</h3>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Choose a note from the list to view its contents</p>
             </div>
           </div>
         )}
@@ -166,31 +192,28 @@ export default function Notes() {
   );
 }
 
-function NoteItem({
-  note,
-  selected,
-  onClick,
-}: {
-  note: Note;
-  selected: boolean;
-  onClick: () => void;
-}) {
+function NoteItem({ note, selected, onClick }: { note: Note; selected: boolean; onClick: () => void }) {
   return (
     <motion.button
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
       onClick={onClick}
-      className={`w-full text-left p-3 rounded-xl transition-all mb-1 ${
-        selected
-          ? 'bg-purple/10 border border-purple/20'
-          : 'hover:bg-surface border border-transparent'
-      }`}
+      className="card"
+      style={{
+        width: '100%',
+        textAlign: 'left',
+        padding: '12px',
+        marginBottom: '4px',
+        cursor: 'pointer',
+        borderColor: selected ? 'var(--color-purple)' : undefined,
+        background: selected ? 'var(--color-purple-subtle)' : undefined,
+      }}
     >
-      <h4 className="text-sm font-semibold text-text truncate">{note.title}</h4>
-      <p className="text-xs text-text-secondary truncate mt-1">{note.content}</p>
-      <div className="flex items-center gap-2 mt-2">
-        <Clock className="w-3 h-3 text-text-muted" />
-        <span className="text-[10px] text-text-muted">{note.updatedAt}</span>
+      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' }}>{note.title}</div>
+      <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{note.content || 'No content'}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <Clock style={{ width: 10, height: 10, color: 'var(--color-text-muted)' }} />
+        <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>{note.updatedAt}</span>
       </div>
     </motion.button>
   );

@@ -61,7 +61,7 @@ export class SemanticTimeline {
     const intentPatterns: Record<string, RegExp[]> = {
       fixing: [/fix(ing)?/i, /bug/i, /debug/i, /error/i, /issue/i, /patch/i],
       coding: [/cod(e|ing)/i, /implement/i, /writ(e|ing)/i, /develop/i, /build/i],
-      reading: [/read(ing)?i, /doc/i, /research/i, /learn/i, /study/i, /browse/i],
+      reading: [/read(ing)?/i, /doc/i, /research/i, /learn/i, /study/i, /browse/i],
       meeting: [/meet(ing)?/i, /call/i, /standup/i, /sync/i, /discuss/i],
       designing: [/design/i, /figma/i, /sketch/i, /ui/i, /ux/i, /layout/i],
       testing: [/test(ing)?/i, /qa/i, /spec/i, /coverage/i],

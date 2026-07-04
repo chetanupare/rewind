@@ -388,6 +388,255 @@ function setupIpc(): void {
       return [];
     }
   }));
+
+  // Memory Bookmarks
+  ipcMain.handle('get-memories', profileHandler('get-memories', (_event, options: { type?: string; limit?: number } = {}) => {
+    if (!db) return [];
+    try {
+      const limit = options.limit || 100;
+      let query = `SELECT * FROM bookmarks`;
+      const params: unknown[] = [];
+      if (options.type) {
+        query += ` WHERE type = ?`;
+        params.push(options.type);
+      }
+      query += ` ORDER BY pinned DESC, created_at DESC LIMIT ?`;
+      params.push(limit);
+      const rows = db.prepare(query).all(...params) as any[];
+      return rows.map(r => ({ ...r, tags: JSON.parse(r.tags || '[]'), pinned: r.pinned === 1 }));
+    } catch { return []; }
+  }));
+
+  ipcMain.handle('create-bookmark', profileHandler('create-bookmark', (_event, data: { type: string; title: string; description?: string; tags?: string[] }) => {
+    if (!db) return null;
+    try {
+      const result = db.prepare(`INSERT INTO bookmarks (timestamp, type, title, description, tags) VALUES (?, ?, ?, ?, ?)`)
+        .run(new Date().toISOString(), data.type, data.title, data.description || '', JSON.stringify(data.tags || []));
+      return result.lastInsertRowid;
+    } catch { return null; }
+  }));
+
+  ipcMain.handle('get-bookmarks', profileHandler('get-bookmarks', (_event, options: { limit?: number } = {}) => {
+    if (!db) return [];
+    try {
+      const limit = options.limit || 50;
+      const rows = db.prepare(`SELECT * FROM bookmarks ORDER BY pinned DESC, created_at DESC LIMIT ?`).all(limit) as any[];
+      return rows.map(r => ({ ...r, tags: JSON.parse(r.tags || '[]'), pinned: r.pinned === 1 }));
+    } catch { return []; }
+  }));
+
+  ipcMain.handle('toggle-bookmark-pin', profileHandler('toggle-bookmark-pin', (_event, id: number) => {
+    if (!db) return false;
+    try {
+      db.prepare(`UPDATE bookmarks SET pinned = CASE WHEN pinned = 1 THEN 0 ELSE 1 END WHERE id = ?`).run(id);
+      return true;
+    } catch { return false; }
+  }));
+
+  ipcMain.handle('delete-bookmark', profileHandler('delete-bookmark', (_event, id: number) => {
+    if (!db) return false;
+    try {
+      db.prepare(`DELETE FROM bookmarks WHERE id = ?`).run(id);
+      return true;
+    } catch { return false; }
+  }));
+
+  // Developer Mode
+  ipcMain.handle('get-dev-events', profileHandler('get-dev-events', (_event, options: { type?: string; limit?: number; date?: string } = {}) => {
+    if (!db) return [];
+    try {
+      const limit = options.limit || 100;
+      let query = `SELECT * FROM dev_events`;
+      const params: unknown[] = [];
+      const conditions: string[] = [];
+      if (options.type) { conditions.push(`type = ?`); params.push(options.type); }
+      if (options.date) { conditions.push(`date(timestamp) = ?`); params.push(options.date); }
+      if (conditions.length > 0) query += ` WHERE ${conditions.join(' AND ')}`;
+      query += ` ORDER BY timestamp DESC LIMIT ?`;
+      params.push(limit);
+      return db.prepare(query).all(...params);
+    } catch { return []; }
+  }));
+
+  ipcMain.handle('get-dev-stats', profileHandler('get-dev-stats', (_event, date: string) => {
+    if (!db) return { commits: 0, screenshots: 0, terminalSessions: 0, fileChanges: 0, activeHours: 0 };
+    try {
+      const start = `${date}T00:00:00.000Z`;
+      const end = `${date}T23:59:59.999Z`;
+      const stats = db.prepare(`SELECT type, COUNT(*) as count FROM dev_events WHERE timestamp BETWEEN ? AND ? GROUP BY type`).all(start, end) as Array<{ type: string; count: number }>;
+      const result = { commits: 0, screenshots: 0, terminalSessions: 0, fileChanges: 0, activeHours: 0 };
+      for (const stat of stats) {
+        switch (stat.type) {
+          case 'commit': result.commits = stat.count; break;
+          case 'screenshot': result.screenshots = stat.count; break;
+          case 'terminal': result.terminalSessions = stat.count; break;
+          case 'file_change': result.fileChanges = stat.count; break;
+        }
+      }
+      const hours = db.prepare(`SELECT DISTINCT strftime('%H', timestamp) as hour FROM dev_events WHERE timestamp BETWEEN ? AND ?`).all(start, end) as Array<{ hour: string }>;
+      result.activeHours = hours.length;
+      return result;
+    } catch { return { commits: 0, screenshots: 0, terminalSessions: 0, fileChanges: 0, activeHours: 0 }; }
+  }));
+
+  // Focus Analytics
+  ipcMain.handle('get-focus-stats', profileHandler('get-focus-stats', (_event, date: string) => {
+    if (!db) return { totalFocusMinutes: 0, deepWorkMinutes: 0, shallowWorkMinutes: 0, breakMinutes: 0, meetingMinutes: 0, averageSessionLength: 0, longestSession: 0, interruptionCount: 0, focusScore: 0, productiveHours: {} };
+    try {
+      const start = `${date}T00:00:00.000Z`;
+      const end = `${date}T23:59:59.999Z`;
+      const sessions = db.prepare(`SELECT * FROM focus_sessions WHERE start_time BETWEEN ? AND ?`).all(start, end) as any[];
+      const stats = { totalFocusMinutes: 0, deepWorkMinutes: 0, shallowWorkMinutes: 0, breakMinutes: 0, meetingMinutes: 0, averageSessionLength: 0, longestSession: 0, interruptionCount: 0, focusScore: 0, productiveHours: {} as Record<string, number> };
+      for (const s of sessions) {
+        const dur = s.duration_minutes || 0;
+        stats.totalFocusMinutes += dur;
+        switch (s.type) { case 'deep_work': stats.deepWorkMinutes += dur; break; case 'shallow_work': stats.shallowWorkMinutes += dur; break; case 'break': stats.breakMinutes += dur; break; case 'meeting': stats.meetingMinutes += dur; break; }
+        stats.interruptionCount += s.interruptions || 0;
+        if (dur > stats.longestSession) stats.longestSession = dur;
+        const hour = new Date(s.start_time).getHours().toString().padStart(2, '0');
+        stats.productiveHours[hour] = (stats.productiveHours[hour] || 0) + dur;
+      }
+      stats.averageSessionLength = sessions.length > 0 ? Math.round(stats.totalFocusMinutes / sessions.length) : 0;
+      stats.focusScore = sessions.length > 0 ? Math.round(sessions.reduce((sum: number, s: any) => sum + (s.score || 0), 0) / sessions.length) : 0;
+      return stats;
+    } catch { return { totalFocusMinutes: 0, deepWorkMinutes: 0, shallowWorkMinutes: 0, breakMinutes: 0, meetingMinutes: 0, averageSessionLength: 0, longestSession: 0, interruptionCount: 0, focusScore: 0, productiveHours: {} }; }
+  }));
+
+  ipcMain.handle('get-focus-sessions', profileHandler('get-focus-sessions', (_event, options: { limit?: number; date?: string } = {}) => {
+    if (!db) return [];
+    try {
+      const limit = options.limit || 20;
+      let query = `SELECT * FROM focus_sessions`;
+      const params: unknown[] = [];
+      if (options.date) { query += ` WHERE date(start_time) = ?`; params.push(options.date); }
+      query += ` ORDER BY start_time DESC LIMIT ?`;
+      params.push(limit);
+      return db.prepare(query).all(...params);
+    } catch { return []; }
+  }));
+
+  ipcMain.handle('get-weekly-focus-trend', profileHandler('get-weekly-focus-trend', () => {
+    if (!db) return [];
+    try {
+      return db.prepare(`SELECT date(start_time) as date, SUM(duration_minutes) as focusMinutes, AVG(score) as score FROM focus_sessions WHERE start_time > datetime('now', '-7 days') GROUP BY date(start_time) ORDER BY date ASC`).all();
+    } catch { return []; }
+  }));
+
+  // Meetings
+  ipcMain.handle('get-meetings', profileHandler('get-meetings', (_event, date?: string) => {
+    if (!db) return [];
+    try {
+      let query = `SELECT * FROM meetings`;
+      const params: unknown[] = [];
+      if (date) { query += ` WHERE date(start_time) = ?`; params.push(date); }
+      query += ` ORDER BY start_time DESC LIMIT 20`;
+      const rows = db.prepare(query).all(...params) as any[];
+      return rows.map(r => ({ ...r, participants: JSON.parse(r.participants || '[]'), actionItems: JSON.parse(r.action_items || '[]'), screenshotIds: JSON.parse(r.screenshot_ids || '[]') }));
+    } catch { return []; }
+  }));
+
+  ipcMain.handle('get-meeting-notes', profileHandler('get-meeting-notes', (_event, meetingId: number) => {
+    if (!db) return [];
+    try { return db.prepare(`SELECT * FROM meeting_notes WHERE meeting_id = ? ORDER BY timestamp ASC`).all(meetingId); } catch { return []; }
+  }));
+
+  // Projects
+  ipcMain.handle('get-projects', profileHandler('get-projects', () => {
+    if (!db) return [];
+    try {
+      const rows = db.prepare(`SELECT * FROM detected_projects ORDER BY last_seen DESC`).all() as any[];
+      return rows.map(r => ({ ...r, technologies: JSON.parse(r.technologies || '[]'), isActive: r.is_active === 1 }));
+    } catch { return []; }
+  }));
+
+  ipcMain.handle('get-project-activities', profileHandler('get-project-activities', (_event, projectId: number, limit = 100) => {
+    if (!db) return [];
+    try { return db.prepare(`SELECT * FROM project_activities WHERE project_id = ? ORDER BY timestamp DESC LIMIT ?`).all(projectId, limit); } catch { return []; }
+  }));
+
+  // Session Replay
+  ipcMain.handle('get-replays', profileHandler('get-replays', (_event, limit = 20) => {
+    if (!db) return [];
+    try { return db.prepare(`SELECT * FROM replay_sessions ORDER BY start_time DESC LIMIT ?`).all(limit); } catch { return []; }
+  }));
+
+  ipcMain.handle('get-replay', profileHandler('get-replay', (_event, id: number) => {
+    if (!db) return null;
+    try {
+      const session = db.prepare(`SELECT * FROM replay_sessions WHERE id = ?`).get(id);
+      if (!session) return null;
+      return session;
+    } catch { return null; }
+  }));
+
+  ipcMain.handle('create-replay', profileHandler('create-replay', (_event, startTime: string, endTime: string, project?: string) => {
+    if (!db) return null;
+    try {
+      const activities = db.prepare(`SELECT * FROM activities WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp ASC`).all(startTime, endTime);
+      const screenshots = db.prepare(`SELECT * FROM screenshots WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp ASC`).all(startTime, endTime);
+      const commits = db.prepare(`SELECT * FROM git_events WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp ASC`).all(startTime, endTime);
+      const steps = [...activities, ...screenshots, ...commits].sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      const duration = Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000 / 60);
+      const summary = `${steps.length} activities. ${commits.length} commits, ${screenshots.length} screenshots.`;
+      const result = db.prepare(`INSERT INTO replay_sessions (start_time, end_time, project, step_count, summary, duration_minutes) VALUES (?, ?, ?, ?, ?, ?)`).run(startTime, endTime, project || '', steps.length, summary, duration);
+      return { id: result.lastInsertRowid, steps, summary, duration };
+    } catch { return null; }
+  }));
+
+  // NL Automation
+  ipcMain.handle('process-nl-command', profileHandler('process-nl-command', async (_event, input: string) => {
+    try {
+      const lower = input.toLowerCase();
+      if (lower.startsWith('remind me') || lower.startsWith('set reminder')) {
+        const now = new Date();
+        if (lower.includes('tomorrow')) now.setDate(now.getDate() + 1);
+        if (lower.includes('next hour')) now.setHours(now.getHours() + 1);
+        const title = input.replace(/remind me|set reminder|tomorrow|next hour|about|to/gi, '').trim();
+        if (db) {
+          db.prepare(`INSERT INTO reminders (title, remind_at) VALUES (?, ?)`).run(title || 'Reminder', now.toISOString());
+        }
+        return { success: true, message: `Reminder set for ${now.toLocaleString()}` };
+      }
+      return { success: false, message: 'Command not recognized. Try "Remind me tomorrow about..."' };
+    } catch { return { success: false, message: 'Failed to process command' }; }
+  }));
+
+  ipcMain.handle('get-reminders', profileHandler('get-reminders', (_event, includeCompleted = false) => {
+    if (!db) return [];
+    try {
+      const query = includeCompleted ? `SELECT * FROM reminders ORDER BY remind_at DESC` : `SELECT * FROM reminders WHERE completed = 0 ORDER BY remind_at ASC`;
+      return db.prepare(query).all();
+    } catch { return []; }
+  }));
+
+  ipcMain.handle('get-automation-rules', profileHandler('get-automation-rules', () => {
+    if (!db) return [];
+    try { return db.prepare(`SELECT * FROM automation_rules ORDER BY created_at DESC`).all(); } catch { return []; }
+  }));
+
+  ipcMain.handle('complete-reminder', profileHandler('complete-reminder', (_event, id: number) => {
+    if (!db) return false;
+    try { db.prepare(`UPDATE reminders SET completed = 1 WHERE id = ?`).run(id); return true; } catch { return false; }
+  }));
+
+  // Knowledge Graph
+  ipcMain.handle('get-knowledge-graph', profileHandler('get-knowledge-graph', (_event, type: string, id: number, depth = 2) => {
+    if (!db) return { nodes: [], edges: [] };
+    try {
+      const links = db.prepare(`SELECT * FROM memory_links WHERE (source_type = ? AND source_id = ?) OR (target_type = ? AND target_id = ?) ORDER BY strength DESC LIMIT 50`).all(type, id, type, id);
+      return { nodes: [], edges: links };
+    } catch { return { nodes: [], edges: [] }; }
+  }));
+
+  ipcMain.handle('get-linked-memories', profileHandler('get-linked-memories', (_event, type: string, id: number) => {
+    if (!db) return [];
+    try {
+      return db.prepare(`SELECT * FROM memory_links WHERE (source_type = ? AND source_id = ?) OR (target_type = ? AND target_id = ?) ORDER BY strength DESC LIMIT 20`).all(type, id, type, id);
+    } catch { return []; }
+  }));
+
+  // Memory API Port
+  ipcMain.handle('get-memory-api-port', profileHandler('get-memory-api-port', () => 48291));
 }
 
 async function initBackgroundService(): Promise<void> {
