@@ -90,7 +90,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   ai: {
     ollamaHost: process.env.OLLAMA_HOST || 'localhost',
     ollamaPort: parseInt(process.env.OLLAMA_PORT || '11434', 10),
-    visionModel: process.env.OLLAMA_VISION_MODEL || 'qwen2.5-vl:1.5b',
+    visionModel: process.env.OLLAMA_VISION_MODEL || 'qwen2.5vl:3b',
     embeddingModel: process.env.OLLAMA_EMBEDDING_MODEL || 'nomic-embed-text',
     textModel: process.env.OLLAMA_TEXT_MODEL || 'qwen2.5-coder:3b',
     coderModel: process.env.OLLAMA_CODER_MODEL || 'qwen2.5-coder:3b',

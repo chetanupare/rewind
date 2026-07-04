@@ -15,6 +15,7 @@ import {
   Image,
   X,
   Maximize2,
+  Loader2,
 } from 'lucide-react';
 
 declare global {
@@ -105,6 +106,37 @@ export default function Screenshots() {
     }
   };
 
+  const getAiStatusStyle = (aiProcessed: number) => {
+    switch (aiProcessed) {
+      case -1: // Pending/In Queue
+        return { background: 'rgba(251, 191, 36, 0.15)', color: '#FBBF24', border: '1px solid rgba(251, 191, 36, 0.3)' };
+      case 0: // Not processed
+        return { background: 'rgba(107, 114, 128, 0.15)', color: '#6B7280', border: '1px solid rgba(107, 114, 128, 0.3)' };
+      case 1: // Processed
+        return { background: 'rgba(0, 212, 126, 0.15)', color: '#00D47E', border: '1px solid rgba(0, 212, 126, 0.3)' };
+      default:
+        return { background: 'rgba(107, 114, 128, 0.15)', color: '#6B7280', border: '1px solid rgba(107, 114, 128, 0.3)' };
+    }
+  };
+
+  const getAiStatusText = (aiProcessed: number) => {
+    switch (aiProcessed) {
+      case -1: return 'Queued';
+      case 0: return 'Pending';
+      case 1: return 'Analyzed';
+      default: return 'Unknown';
+    }
+  };
+
+  const getAiStatusIcon = (aiProcessed: number) => {
+    switch (aiProcessed) {
+      case -1: return <Clock style={{ width: 10, height: 10 }} />;
+      case 0: return <Brain style={{ width: 10, height: 10 }} />;
+      case 1: return <Sparkles style={{ width: 10, height: 10 }} />;
+      default: return null;
+    }
+  };
+
   const changeDate = (days: number) => {
     const d = new Date(date);
     d.setDate(d.getDate() + days);
@@ -146,6 +178,25 @@ export default function Screenshots() {
             <button className="btn-icon" onClick={() => changeDate(1)}>
               <ChevronRight style={{ width: 18, height: 18 }} />
             </button>
+            
+            {/* Queue Status */}
+            {stats.pending > 0 && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                background: 'rgba(251, 191, 36, 0.1)',
+                border: '1px solid rgba(251, 191, 36, 0.2)',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 600,
+                color: '#FBBF24',
+              }}>
+                <Loader2 style={{ width: 14, height: 14, animation: 'spin 1s linear infinite' }} />
+                {stats.pending} pending analysis
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -202,7 +253,26 @@ export default function Screenshots() {
                     >
                       <div style={{ aspectRatio: '16/10', background: 'var(--color-bg)', position: 'relative' }}>
                         <ScreenshotThumb filePath={s.file_path} />
-                        {s.ai_state && (
+                        
+                        {/* AI Status Badge */}
+                        <div style={{
+                          position: 'absolute',
+                          top: 8,
+                          left: 8,
+                          padding: '3px 8px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          borderRadius: '6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          ...getAiStatusStyle(s.ai_processed),
+                        }}>
+                          {getAiStatusIcon(s.ai_processed)}
+                          {getAiStatusText(s.ai_processed)}
+                        </div>
+
+                        {s.ai_state && s.ai_processed === 1 && (
                           <div style={{
                             position: 'absolute',
                             top: 8,
@@ -256,10 +326,23 @@ export default function Screenshots() {
                         <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>{s.ai_app || 'Unknown'}</div>
                         <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>{s.ai_task || 'No task detected'}</div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
+                      <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                         <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{new Date(s.timestamp).toLocaleTimeString()}</div>
-                        {s.ai_state && (
-                          <div style={{ fontSize: '10px', fontWeight: 600, color: getStateColor(s.ai_state), marginTop: '2px', textTransform: 'capitalize' }}>{s.ai_state}</div>
+                        <div style={{
+                          padding: '2px 6px',
+                          fontSize: '9px',
+                          fontWeight: 700,
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          ...getAiStatusStyle(s.ai_processed),
+                        }}>
+                          {getAiStatusIcon(s.ai_processed)}
+                          {getAiStatusText(s.ai_processed)}
+                        </div>
+                        {s.ai_state && s.ai_processed === 1 && (
+                          <div style={{ fontSize: '10px', fontWeight: 600, color: getStateColor(s.ai_state), textTransform: 'capitalize' }}>{s.ai_state}</div>
                         )}
                       </div>
                     </motion.div>
