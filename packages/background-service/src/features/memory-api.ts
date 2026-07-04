@@ -112,7 +112,10 @@ export class MemoryApi {
 
     switch (path) {
       case '/health':
-        return { success: true, data: { status: 'ok', version: '0.1.0' } };
+        return { success: true, data: { status: 'ok', version: '0.2.0' } };
+
+      case '/event':
+        return this.handleEvent(req);
 
       case '/search':
         return this.handleSearch(url);
@@ -342,6 +345,60 @@ export class MemoryApi {
         total: { bookmarks },
       },
     };
+  }
+
+  private async handleEvent(req: http.IncomingMessage): Promise<ApiResponse> {
+    return new Promise((resolve) => {
+      let body = '';
+      req.on('data', (chunk) => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const data = JSON.parse(body);
+          const { type, payload } = data;
+
+          if (type === 'BROWSER_TAB_CHANGED' || type === 'BROWSER_URL_CHANGED') {
+            this.db.prepare(`
+              INSERT INTO browser_contexts (timestamp, url, title, site, category, is_productive)
+              VALUES (?, ?, ?, ?, ?, ?)
+            `).run(
+              new Date().toISOString(),
+              payload.url || '',
+              payload.pageTitle || '',
+              this.extractSite(payload.url || ''),
+              'browser',
+              1
+            );
+          }
+
+          if (type === 'BROWSER_TIME_SPENT') {
+            this.db.prepare(`
+              INSERT INTO browser_contexts (timestamp, url, title, site, category, is_productive)
+              VALUES (?, ?, ?, ?, ?, ?)
+            `).run(
+              new Date().toISOString(),
+              payload.url || '',
+              payload.pageTitle || '',
+              this.extractSite(payload.url || ''),
+              'browser',
+              1
+            );
+          }
+
+          resolve({ success: true, data: { received: true } });
+        } catch (err: any) {
+          resolve({ success: false, data: null, error: err.message });
+        }
+      });
+    });
+  }
+
+  private extractSite(url: string): string {
+    try {
+      const hostname = new URL(url).hostname;
+      return hostname.replace('www.', '');
+    } catch {
+      return 'unknown';
+    }
   }
 
   getPort(): number {

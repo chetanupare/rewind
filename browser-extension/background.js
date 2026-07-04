@@ -4,7 +4,9 @@ const SYNC_INTERVAL = 30000;
 let currentTab = null;
 let tabStartTime = null;
 let browsingHistory = [];
+let isConnected = false;
 
+// Track tab changes
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
   try {
     const tab = await chrome.tabs.get(activeInfo.tabId);
@@ -14,12 +16,14 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   }
 });
 
+// Track URL changes
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.url || changeInfo.title) {
     await handleTabChange(tab);
   }
 });
 
+// Track tab close
 chrome.tabs.onRemoved.addListener((tabId) => {
   if (currentTab && currentTab.id === tabId) {
     recordTimeSpent();
@@ -28,10 +32,11 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 });
 
 async function handleTabChange(tab) {
-  if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('edge://')) {
+  if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:')) {
     return;
   }
 
+  // Record time on previous tab
   if (currentTab) {
     recordTimeSpent();
   }
@@ -44,6 +49,7 @@ async function handleTabChange(tab) {
   };
   tabStartTime = Date.now();
 
+  // Send to RewindX
   await sendToRewindX('BROWSER_TAB_CHANGED', {
     browser: detectBrowser(),
     tabId: tab.id,
@@ -68,10 +74,15 @@ function recordTimeSpent() {
 
   browsingHistory.push(entry);
 
-  if (browsingHistory.length > 100) {
-    browsingHistory = browsingHistory.slice(-100);
+  // Keep last 200 entries
+  if (browsingHistory.length > 200) {
+    browsingHistory = browsingHistory.slice(-200);
   }
 
+  // Store locally
+  chrome.storage.local.set({ browsingHistory });
+
+  // Send to RewindX
   sendToRewindX('BROWSER_TIME_SPENT', {
     browser: detectBrowser(),
     url: currentTab.url,
@@ -92,10 +103,13 @@ async function sendToRewindX(eventType, payload) {
       })
     });
 
-    if (!response.ok) {
+    if (response.ok) {
+      isConnected = true;
+    } else {
       console.error('Failed to send event to RewindX:', response.status);
     }
   } catch (err) {
+    isConnected = false;
     console.error('RewindX not available:', err.message);
   }
 }
@@ -108,6 +122,7 @@ function detectBrowser() {
   return 'unknown';
 }
 
+// Sync history periodically
 chrome.alarms.create('syncHistory', { periodInMinutes: 1 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -142,17 +157,35 @@ async function syncBrowsingHistory() {
   }
 }
 
+// Load stored history on startup
+chrome.storage.local.get(['browsingHistory'], (result) => {
+  if (result.browsingHistory) {
+    browsingHistory = result.browsingHistory;
+  }
+});
+
+// Handle messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getHistory') {
     sendResponse({ history: browsingHistory });
   } else if (request.action === 'getStatus') {
     sendResponse({
-      connected: true,
+      connected: isConnected,
       currentTab: currentTab,
       historyCount: browsingHistory.length
     });
   }
   return true;
 });
+
+// Check connection on startup
+setInterval(async () => {
+  try {
+    const response = await fetch(`${API_URL}/health`);
+    isConnected = response.ok;
+  } catch {
+    isConnected = false;
+  }
+}, 10000);
 
 console.log('RewindX Browser Extension loaded');
