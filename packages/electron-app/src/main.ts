@@ -321,11 +321,7 @@ function setupIpc(): void {
 4. Always reference specific apps and times from the data`;
       const fullPrompt = `${systemPrompt}${contextBlock}\n\nUser question: ${message}\n\nAnswer based ONLY on the data above:`;
       const cfg = config.get();
-      const responsePromise = ollama.generate({ model: cfg.ai.textModel, prompt: fullPrompt });
-      const timeoutPromise = new Promise<string>((_, reject) => 
-        setTimeout(() => reject(new Error('AI response timeout')), 30000)
-      );
-      const response = await Promise.race([responsePromise, timeoutPromise]);
+      const response = await ollama.generate({ model: cfg.ai.textModel, prompt: fullPrompt });
       return { role: 'assistant', content: response };
     } catch (err: any) {
       return { role: 'assistant', content: `Sorry, I encountered an error: ${err.message || String(err)}` };

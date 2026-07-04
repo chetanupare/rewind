@@ -54,7 +54,6 @@ export class OllamaClient {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(300000), // 5 minute timeout
       });
 
       if (!response.ok) {
@@ -81,7 +80,6 @@ export class OllamaClient {
           model: params.model,
           input: params.input,
         }),
-        signal: AbortSignal.timeout(120000), // 2 minute timeout for embedding
       });
 
       if (!response.ok) {
