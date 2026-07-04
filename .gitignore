@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-electron/
+build/
 *.js.map
 *.d.ts.map
 .env
@@ -28,3 +29,15 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Test files
+test_*.js
+test_*.py
+test_*.jpg
+query_db*.js
+query_db*.py
+resize.ps1
+electron-output.txt
+
+# Old docs
+AI Work Memory*.md
