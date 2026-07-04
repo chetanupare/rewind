@@ -19,3 +19,4 @@ export { ReasoningEngine } from './reasoning-engine.js';
 export { AIMentor } from './ai-mentor.js';
 export { CognitiveFeedbackLoop } from './feedback-loop.js';
 export { CognitivePipeline } from './cognitive-pipeline.js';
+export { MemoryIntelligence } from './memory-intelligence.js';

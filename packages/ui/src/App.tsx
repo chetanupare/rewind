@@ -29,13 +29,15 @@ import FocusAnalytics from './pages/FocusAnalytics';
 import SessionReplay from './pages/SessionReplay';
 import Screenshots from './pages/Screenshots';
 import BrowserExtension from './pages/BrowserExtension';
+import MemoryDashboard from './pages/MemoryDashboard';
 
-type Page = 'dashboard' | 'chat' | 'memory' | 'search' | 'timeline' | 'screenshots' | 'developer' | 'focus' | 'replay' | 'browser' | 'notes' | 'settings';
+type Page = 'dashboard' | 'chat' | 'memory' | 'search' | 'timeline' | 'screenshots' | 'developer' | 'focus' | 'replay' | 'browser' | 'notes' | 'settings' | 'memory-health';
 
 const navItems = [
   { id: 'dashboard' as Page, icon: LayoutDashboard, label: 'Dashboard' },
   { id: 'chat' as Page, icon: MessageSquare, label: 'Chat' },
   { id: 'memory' as Page, icon: Brain, label: 'Memory' },
+  { id: 'memory-health' as Page, icon: Sparkles, label: 'Brain' },
   { id: 'search' as Page, icon: Search, label: 'Search' },
   { id: 'timeline' as Page, icon: Clock, label: 'Timeline' },
   { id: 'screenshots' as Page, icon: Camera, label: 'Screenshots' },
@@ -76,6 +78,8 @@ export default function App() {
         return <SessionReplay />;
       case 'browser':
         return <BrowserExtension />;
+      case 'memory-health':
+        return <MemoryDashboard />;
       default:
         return <Dashboard />;
     }
