@@ -61,9 +61,38 @@ ollama pull qwen2.5-coder:3b   # Text (2GB)
 ollama pull nomic-embed-text    # Embeddings (275MB)
 ```
 
+### Python Dependencies (Optional - for advanced features)
+
+The installer includes a setup script for Python dependencies. If you skipped it during installation:
+
+```bash
+# Run the setup script
+setup-python.bat
+```
+
+Or manually install:
+```bash
+pip install paddleocr easyocr pytesseract PyMuPDF python-docx spacy networkx
+python -m spacy download en_core_web_sm
+```
+
+**What each dependency enables:**
+
+| Dependency | Feature | Size |
+|------------|---------|------|
+| PaddleOCR | Best OCR accuracy | ~80 MB |
+| EasyOCR | Lightweight OCR fallback | ~80 MB |
+| Tesseract | Fast offline OCR | ~50 MB |
+| PyMuPDF | PDF text extraction | ~15 MB |
+| python-docx | DOCX extraction | ~1 MB |
+| spaCy | Entity recognition | ~40 MB |
+| NetworkX | Knowledge graph algorithms | ~10 MB |
+
+**Without Python:** Core features work 100%. OCR uses Windows native. No document/entity extraction.
+
 ### Optional
-- **Tesseract OCR** — Text extraction from screenshots
-- **Qdrant** — Vector database for semantic search
+- **Tesseract OCR** - Text extraction from screenshots
+- **Qdrant** - Vector database for semantic search
 
 ---
 

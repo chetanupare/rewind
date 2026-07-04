@@ -8,7 +8,7 @@
 #define MyAppExeName "RewindX.exe"
 
 [Setup]
-AppId=rewindx-app-010
+AppId=rewindx-app-020
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
@@ -36,17 +36,22 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "startupicon"; Description: "Start with Windows"; GroupDescription: "Startup:"
+Name: "setuppython"; Description: "Install Python dependencies (recommended for full features)"; GroupDescription: "Optional:"
 
 [Files]
 Source: "dist-electron\win-unpacked\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "setup-python.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "python-requirements.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\Setup Python Dependencies"; Filename: "{app}\setup-python.bat"; Tasks: setuppython
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: startupicon
 
 [Run]
+Filename: "{app}\setup-python.bat"; Description: "Setup Python dependencies for OCR, Document Intelligence, etc."; Flags: postinstall skipifsilent; Tasks: setuppython
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Registry]

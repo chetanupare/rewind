@@ -1,0 +1,36 @@
+# RewindX Python Dependencies
+# Core OCR
+paddlepaddle>=2.5.0
+paddleocr>=2.7.0
+easyocr>=1.7.0
+pytesseract>=0.3.10
+Pillow>=10.0.0
+
+# Document Processing
+PyMuPDF>=1.23.0
+python-docx>=0.8.11
+python-pptx>=0.6.21
+openpyxl>=3.1.0
+
+# Speech Recognition
+openai-whisper>=20230918
+
+# NLP & Entity Recognition
+spacy>=3.7.0
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
+
+# Search & Embeddings
+sentence-transformers>=2.2.0
+faiss-cpu>=1.7.4
+
+# Graph & Data Processing
+networkx>=3.1
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Image Processing
+opencv-python-headless>=4.8.0
+
+# Utilities
+requests>=2.31.0
+tqdm>=4.65.0
