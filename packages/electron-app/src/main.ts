@@ -27,7 +27,7 @@ function createWindow(): void {
     width: 1200,
     height: 800,
     show: false,
-    title: 'AI Work Memory',
+    title: 'RewindX',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -127,7 +127,7 @@ function createTray(): void {
     },
   ]);
 
-  tray.setToolTip('AI Work Memory');
+  tray.setToolTip('RewindX');
   tray.setContextMenu(contextMenu);
 
   tray.on('double-click', () => {
@@ -380,7 +380,7 @@ async function initBackgroundService(): Promise<void> {
       const data = event.payload;
       if (data.action === 'THRASHING_DETECTED' || data.action === 'DISTRACTION_NUDGE') {
         new Notification({
-          title: 'AI Work Memory',
+          title: 'RewindX',
           body: data.message as string || 'Need some help?',
         }).show();
       }

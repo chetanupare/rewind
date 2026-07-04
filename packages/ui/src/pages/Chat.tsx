@@ -43,7 +43,7 @@ export default function Chat() {
       <div className="chat-msgs">
         {messages.length === 0 && (
           <div className="chat-empty">
-            <h3>AI Work Memory</h3>
+            <h3>RewindX</h3>
             <p>Ask me anything about your work</p>
             <div className="chat-suggestions">
               {suggestions.map(s => (

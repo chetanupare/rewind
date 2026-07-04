@@ -70,7 +70,7 @@ export default function Omnibar() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ask your AI Work Memory..."
+          placeholder="Ask RewindX..."
           style={{
             flex: 1,
             padding: '16px 20px',

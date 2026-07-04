@@ -25,7 +25,7 @@ export async function startBackgroundService(
   bus: EventBus,
   config: AppConfig
 ): Promise<void> {
-  log.info('AI Work Memory background service starting...');
+  log.info('RewindX background service starting...');
 
   try {
     await ensureQdrantCollection();
@@ -92,7 +92,7 @@ export async function startBackgroundService(
   startScheduler(database, bus);
   startRetentionManager(config);
 
-  log.info('AI Work Memory background service running');
+  log.info('RewindX background service running');
 }
 
 export async function stopBackgroundService(): Promise<void> {

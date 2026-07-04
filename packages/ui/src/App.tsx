@@ -24,7 +24,7 @@ export default function App() {
     <div className="app">
       <nav className="sidebar">
         <div className="sidebar-header">
-          <h1>AI Work Memory</h1>
+          <h1>RewindX</h1>
         </div>
         <ul className="nav-links">
           <li><NavLink to="/" className={({ isActive }) => isActive ? 'active' : ''}>Dashboard</NavLink></li>

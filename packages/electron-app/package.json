@@ -3,7 +3,7 @@
     "version":  "0.1.0",
     "private":  true,
     "description":  "Personal Windows AI assistant",
-    "author":  "AI Work Memory",
+    "author":  "RewindX",
     "main":  "./dist/main.js",
     "scripts":  {
                     "build":  "npm run bundle",
@@ -25,7 +25,7 @@
                         },
     "build":  {
                   "appId":  "com.aiworkmemory.app",
-                  "productName":  "AI Work Memory",
+                  "productName":  "RewindX",
                   "directories":  {
                                       "output":  "../../dist-electron"
                                   },
