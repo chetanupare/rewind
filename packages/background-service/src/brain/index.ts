@@ -17,3 +17,5 @@ export { UserPersonalityModel } from './personality-model.js';
 export { AIReflection } from './ai-reflection.js';
 export { ReasoningEngine } from './reasoning-engine.js';
 export { AIMentor } from './ai-mentor.js';
+export { CognitiveFeedbackLoop } from './feedback-loop.js';
+export { CognitivePipeline } from './cognitive-pipeline.js';
