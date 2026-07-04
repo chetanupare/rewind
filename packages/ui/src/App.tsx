@@ -14,6 +14,7 @@ import {
   Zap,
   Play,
   Bell,
+  Camera,
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
@@ -25,8 +26,9 @@ import SettingsPage from './pages/Settings';
 import DeveloperMode from './pages/DeveloperMode';
 import FocusAnalytics from './pages/FocusAnalytics';
 import SessionReplay from './pages/SessionReplay';
+import Screenshots from './pages/Screenshots';
 
-type Page = 'dashboard' | 'chat' | 'memory' | 'search' | 'timeline' | 'notes' | 'settings' | 'developer' | 'focus' | 'replay';
+type Page = 'dashboard' | 'chat' | 'memory' | 'search' | 'timeline' | 'screenshots' | 'notes' | 'settings' | 'developer' | 'focus' | 'replay';
 
 const navItems = [
   { id: 'dashboard' as Page, icon: LayoutDashboard, label: 'Dashboard' },
@@ -34,6 +36,7 @@ const navItems = [
   { id: 'memory' as Page, icon: Brain, label: 'Memory' },
   { id: 'search' as Page, icon: Search, label: 'Search' },
   { id: 'timeline' as Page, icon: Clock, label: 'Timeline' },
+  { id: 'screenshots' as Page, icon: Camera, label: 'Screenshots' },
   { id: 'developer' as Page, icon: Code, label: 'Developer' },
   { id: 'focus' as Page, icon: Zap, label: 'Focus' },
   { id: 'replay' as Page, icon: Play, label: 'Replay' },
@@ -60,6 +63,8 @@ export default function App() {
         return <Notes />;
       case 'settings':
         return <SettingsPage />;
+      case 'screenshots':
+        return <Screenshots />;
       case 'developer':
         return <DeveloperMode />;
       case 'focus':

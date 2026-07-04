@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@ai-work-memory/shared": "*",
+    "active-win": "^8.2.1",
     "chokidar": "^4.0.3",
     "node-cron": "^3.0.3",
+    "node-global-key-listener": "^0.3.0",
     "pino": "^10.3.1",
     "sharp": "^0.35.2",
     "simple-git": "^3.36.0",

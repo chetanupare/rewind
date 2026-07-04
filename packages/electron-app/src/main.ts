@@ -321,7 +321,11 @@ function setupIpc(): void {
 4. Always reference specific apps and times from the data`;
       const fullPrompt = `${systemPrompt}${contextBlock}\n\nUser question: ${message}\n\nAnswer based ONLY on the data above:`;
       const cfg = config.get();
-      const response = await ollama.generate({ model: cfg.ai.textModel, prompt: fullPrompt });
+      const responsePromise = ollama.generate({ model: cfg.ai.textModel, prompt: fullPrompt });
+      const timeoutPromise = new Promise<string>((_, reject) => 
+        setTimeout(() => reject(new Error('AI response timeout')), 30000)
+      );
+      const response = await Promise.race([responsePromise, timeoutPromise]);
       return { role: 'assistant', content: response };
     } catch (err: any) {
       return { role: 'assistant', content: `Sorry, I encountered an error: ${err.message || String(err)}` };
@@ -637,6 +641,35 @@ function setupIpc(): void {
 
   // Memory API Port
   ipcMain.handle('get-memory-api-port', profileHandler('get-memory-api-port', () => 48291));
+
+  // Screenshots with AI Reviews
+  ipcMain.handle('get-screenshots-with-reviews', profileHandler('get-screenshots-with-reviews', (_event, options: { date?: string; limit?: number } = {}) => {
+    if (!db) return [];
+    try {
+      const limit = options.limit || 50;
+      let query = `SELECT id, timestamp, file_path, image_hash, width, height, ocr_text, ai_description, ai_app, ai_task, ai_project, ai_language, ai_framework, ai_state, ai_processed, ocr_processed FROM screenshots`;
+      const params: unknown[] = [];
+      if (options.date) {
+        query += ` WHERE date(timestamp) = ?`;
+        params.push(options.date);
+      }
+      query += ` ORDER BY timestamp DESC LIMIT ?`;
+      params.push(limit);
+      return db.prepare(query).all(...params);
+    } catch { return []; }
+  }));
+
+  ipcMain.handle('get-screenshot-stats', profileHandler('get-screenshot-stats', (_event, date: string) => {
+    if (!db) return { total: 0, analyzed: 0, pending: 0, withOcr: 0 };
+    try {
+      const start = `${date}T00:00:00.000Z`;
+      const end = `${date}T23:59:59.999Z`;
+      const total = (db.prepare(`SELECT COUNT(*) as count FROM screenshots WHERE timestamp BETWEEN ? AND ?`).get(start, end) as { count: number }).count;
+      const analyzed = (db.prepare(`SELECT COUNT(*) as count FROM screenshots WHERE timestamp BETWEEN ? AND ? AND ai_processed = 1`).get(start, end) as { count: number }).count;
+      const withOcr = (db.prepare(`SELECT COUNT(*) as count FROM screenshots WHERE timestamp BETWEEN ? AND ? AND ocr_processed = 1`).get(start, end) as { count: number }).count;
+      return { total, analyzed, pending: total - analyzed, withOcr };
+    } catch { return { total: 0, analyzed: 0, pending: 0, withOcr: 0 }; }
+  }));
 }
 
 async function initBackgroundService(): Promise<void> {

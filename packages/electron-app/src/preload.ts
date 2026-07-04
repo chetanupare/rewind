@@ -92,4 +92,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Memory API
   getMemoryApiPort: () => ipcRenderer.invoke('get-memory-api-port'),
+
+  // Screenshots with AI Reviews
+  getScreenshotsWithReviews: (options?: { date?: string; limit?: number }) =>
+    ipcRenderer.invoke('get-screenshots-with-reviews', options),
+  getScreenshotStats: (date: string) => ipcRenderer.invoke('get-screenshot-stats', date),
 });
