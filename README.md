@@ -1,139 +1,219 @@
 <div align="center">
 
-<img src="packages/ui/public/assets/brand/text-logo.png" alt="RewindX" width="400" />
+<img src="https://raw.githubusercontent.com/chetanupare/rewind/main/packages/ui/public/assets/brand/text-logo.png" alt="RewindX" width="320" />
 
-### Your AI-Powered Second Brain
+<br />
+<br />
 
-**RewindX continuously understands your computer activity and turns it into searchable knowledge.**
+**The AI-Powered Second Brain for Your Computer**
 
-Instead of simply recording screenshots, RewindX connects your code, browser history, terminal sessions, meetings, documents, and decisions into a memory you can chat with.
+RewindX continuously understands your computer activity and turns it into searchable knowledge.
 
-[![Windows](https://img.shields.io/badge/Download-v0.3.0-5B2EFF?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/chetanupare/rewind/releases)
-[![License](https://img.shields.io/badge/License-AGPL--3.0-00D47E?style=for-the-badge)](LICENSE)
+<br />
+
+[![Download](https://img.shields.io/badge/Download-v0.3.0-blue?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/chetanupare/rewind/releases)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-green?style=for-the-badge)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Electron](https://img.shields.io/badge/Electron-33-47848F?style=for-the-badge&logo=electron&logoColor=white)](https://electronjs.org)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
+[![Ollama](https://img.shields.io/badge/Ollama-Local_AI-black?style=for-the-badge)](https://ollama.com)
+
+<br />
+
+[![GitHub Stars](https://img.shields.io/github/stars/chetanupare/rewind?style=for-the-badge)](https://github.com/chetanupare/rewind/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/chetanupare/rewind?style=for-the-badge)](https://github.com/chetanupare/rewind/issues)
+[![GitHub Forks](https://img.shields.io/github/forks/chetanupare/rewind?style=for-the-badge)](https://github.com/chetanupare/rewind/network/members)
 
 </div>
+
+<br />
 
 ---
 
 ## Ask RewindX
 
-> "What was I debugging yesterday?"
+<table>
+<tr>
+<td width="50%">
 
-> "Where did I first see this error?"
+**Find Anything**
 
-> "Continue my work from Friday."
+"What was I debugging yesterday?"
 
-> "Why did I switch to SQLite?"
+"Where did I first see this error?"
 
-> "Summarize today's work."
+"Find the commit related to this screenshot."
 
-> "Show every discussion about OAuth."
+"Show every discussion about OAuth."
 
-> "Find the commit related to this screenshot."
+</td>
+<td width="50%">
 
-> "What have I learned this week?"
+**Understand Work**
 
-**RewindX doesn't just search — it remembers, reasons, and connects.**
+"Continue my work from Friday."
+
+"Why did I switch to SQLite?"
+
+"Summarize today's work."
+
+"What have I learned this week?"
+
+</td>
+</tr>
+</table>
+
+RewindX does not just search. It remembers, reasons, and connects.
 
 ---
 
-## Why RewindX?
+## Why RewindX
 
-| | RewindX | Windows Recall | Rewind |
-|---|---------|----------------|--------|
-| **100% Local** | ✅ | ⚠️ Cloud | ⚠️ Cloud |
-| **Open Source** | ✅ | ❌ | ❌ |
-| **Knowledge Graph** | ✅ | ❌ | ❌ |
-| **Developer Intelligence** | ✅ | ❌ | ❌ |
-| **Cognitive Memory** | ✅ | ❌ | ❌ |
-| **Decision Tracking** | ✅ | ❌ | ❌ |
-| **AI Reflection** | ✅ | ❌ | ❌ |
-| **Free Forever** | ✅ | ❌ | ❌ |
+<table>
+<tr>
+<th>Feature</th>
+<th>RewindX</th>
+<th>Windows Recall</th>
+<th>Rewind</th>
+</tr>
+<tr>
+<td>100% Local</td>
+<td align="center"><b>Yes</b></td>
+<td align="center">Cloud</td>
+<td align="center">Cloud</td>
+</tr>
+<tr>
+<td>Open Source</td>
+<td align="center"><b>Yes</b></td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td>Knowledge Graph</td>
+<td align="center"><b>Yes</b></td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td>Developer Intelligence</td>
+<td align="center"><b>Yes</b></td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td>Cognitive Memory</td>
+<td align="center"><b>Yes</b></td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td>Decision Tracking</td>
+<td align="center"><b>Yes</b></td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td>AI Reflection</td>
+<td align="center"><b>Yes</b></td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td>Free Forever</td>
+<td align="center"><b>Yes</b></td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+</table>
 
 ---
 
 ## How It Works
 
 ```
-Your Activity → Brain → Knowledge → Answers
+Collectors → Brain → Knowledge → Answers
 ```
 
-1. **Observe** — Tracks windows, keyboard, screenshots, git, browser
-2. **Understand** — Detects coding, debugging, meetings, research
-3. **Connect** — Links related events into episodes
-4. **Learn** — Builds knowledge graph over time
-5. **Predict** — Anticipates what you need next
-6. **Remember** — Stores knowledge, not raw data
-
----
-
-## What You Can Do
-
-### 🔍 Search Your Memory
-
-```
-"React hooks"           → All related work
-"MongoDB errors"        → Screenshots, terminal, commits
-"authentication"        → Everything about auth
-"What was I doing at 2pm?" → Exact moment replay
-```
-
-### 💬 Chat With Your Work
-
-```
-You: What did I work on today?
-AI:  You implemented JWT authentication, debugged a token 
-     refresh issue, and committed 3 changes to the auth module.
-
-You: Why did I switch to SQLite?
-AI:  You switched for performance reasons on July 3rd.
-     The decision was logged after testing with 10k records.
-```
-
-### ⏰ Time Travel
-
-Browse your work day as a visual timeline:
-- Scrub through screenshots
-- See what you were doing at any moment
-- One-click to restore your workspace
-
-### 📊 Focus Analytics
-
-See your productivity patterns:
-- Deep work vs shallow work
-- Peak productivity hours
-- Interruption frequency
-- Focus score trends
-
-### 🧠 Smart Memory
-
-- **Episodic Memory** — Remembers episodes, not screenshots
-- **Decision Tracking** — Remembers why you made choices
-- **Mistake Learning** — Personal error database
-- **Knowledge Gaps** — Suggests what to learn next
+**Observe** — Tracks windows, keyboard, screenshots, git, browser  
+**Understand** — Detects coding, debugging, meetings, research  
+**Connect** — Links related events into episodes  
+**Learn** — Builds knowledge graph over time  
+**Predict** — Anticipates what you need next  
+**Remember** — Stores knowledge, not raw data  
 
 ---
 
 ## Quick Start
 
-### 1. Install Ollama
+### Step 1: Install Ollama
+
+Download from [ollama.com/download](https://ollama.com/download)
 
 ```bash
-# Download from https://ollama.com/download
 ollama pull qwen2.5-vl:3b
 ollama pull qwen2.5-coder:3b
 ollama pull nomic-embed-text
 ```
 
-### 2. Install RewindX
+### Step 2: Install RewindX
 
 Download `RewindX-Setup-0.3.0.exe` from [Releases](https://github.com/chetanupare/rewind/releases)
 
-### 3. Start Using
+### Step 3: Start Using
 
-- Press `Alt+Space` to open quick search
-- Ask questions about your work
-- Check the Dashboard for daily insights
+Press `Alt+Space` to open quick search and start asking questions.
+
+---
+
+## Features
+
+<table>
+<tr>
+<td width="50%">
+
+**Smart Memory**
+- Episodic memory (remembers episodes, not events)
+- Decision tracking (remembers why)
+- Mistake learning (personal error database)
+- Knowledge gaps (suggests what to learn)
+
+**Focus & Productivity**
+- Focus mode (Pomodoro timer)
+- Smart notifications
+- Focus analytics
+- Distraction detection
+
+</td>
+<td width="50%">
+
+**Intelligence**
+- Vision AI (screenshot analysis)
+- Meeting detection
+- Session detection
+- Pattern learning
+
+**Integration**
+- Git tracking
+- Browser tracking
+- Terminal capture
+- Clipboard history
+
+</td>
+</tr>
+</table>
+
+---
+
+## Performance
+
+| Metric | Value |
+|--------|-------|
+| CPU | Less than 5% |
+| RAM | Less than 300 MB |
+| Startup | Less than 2 seconds |
+| Search | Less than 100ms |
+| Window Tracking | Less than 5ms |
 
 ---
 
@@ -147,45 +227,38 @@ Download `RewindX-Setup-0.3.0.exe` from [Releases](https://github.com/chetanupar
 
 ---
 
-## Non-Goals
+## Architecture
 
-- ❌ Cloud sync or remote storage
-- ❌ User tracking or analytics
-- ❌ Selling data or ads
-- ❌ Vendor lock-in
-- ❌ Always-on internet requirement
+```
+Collectors          Brain              Memory
+    │                 │                  │
+    ▼                 ▼                  ▼
+┌─────────┐    ┌───────────┐    ┌──────────────┐
+│ Windows │    │ Intent    │    │ Episodes     │
+│ Input   │───▶│ Patterns  │───▶│ Decisions    │
+│ Git     │    │ Concepts  │    │ Knowledge    │
+│ Browser │    │ Predict   │    │ Graph        │
+└─────────┘    └───────────┘    └──────────────┘
+                                      │
+                                      ▼
+                               ┌──────────────┐
+                               │ Search       │
+                               │ Chat         │
+                               │ API          │
+                               └──────────────┘
+```
 
 ---
 
-## Performance
+## Documentation
 
-| Metric | Value |
-|--------|-------|
-| CPU | < 5% |
-| RAM | < 300 MB |
-| Startup | < 2s |
-| Search | < 100ms |
-| Window Tracking | < 5ms |
-
----
-
-## Screenshots
-
-<div align="center">
-
-**Dashboard**
-![Dashboard](screenshots/dashboard.png)
-
-**Chat**
-![Chat](screenshots/chat.png)
-
-**Timeline**
-![Timeline](screenshots/timeline.png)
-
-**Search**
-![Search](screenshots/search.png)
-
-</div>
+| Document | Description |
+|----------|-------------|
+| [Features](FEATURES.md) | What you can do with RewindX |
+| [Architecture](ARCHITECTURE.md) | How the system works |
+| [Brain](BRAIN.md) | The cognitive engine |
+| [Roadmap](ROADMAP.md) | What is coming next |
+| [Contributing](CONTRIBUTING.md) | How to help build |
 
 ---
 
@@ -193,40 +266,35 @@ Download `RewindX-Setup-0.3.0.exe` from [Releases](https://github.com/chetanupar
 
 | Milestone | Goal |
 |-----------|------|
-| ⭐ 100 Stars | Plugin SDK |
-| ⭐ 500 Stars | Linux Support |
-| ⭐ 1000 Stars | macOS Support |
-| ⭐ 5000 Stars | Mobile Companion |
-
----
-
-## Learn More
-
-- [Features](FEATURES.md) — What you can do
-- [Architecture](ARCHITECTURE.md) — How it works
-- [Brain](BRAIN.md) — The cognitive engine
-- [Roadmap](ROADMAP.md) — What's coming
-- [Contributing](CONTRIBUTING.md) — How to help
+| 100 Stars | Plugin SDK |
+| 500 Stars | Linux Support |
+| 1000 Stars | macOS Support |
+| 5000 Stars | Mobile Companion |
 
 ---
 
 ## Community
 
-- [GitHub Issues](https://github.com/chetanupare/rewind/issues) — Report bugs
-- [GitHub Discussions](https://github.com/chetanupare/rewind/discussions) — Ask questions
+[![GitHub Issues](https://img.shields.io/badge/Report_Bug-gray?style=for-the-badge&logo=github)](https://github.com/chetanupare/rewind/issues)
+[![GitHub Discussions](https://img.shields.io/badge/Ask_Question-gray?style=for-the-badge&logo=github)](https://github.com/chetanupare/rewind/discussions)
+[![GitHub PRs](https://img.shields.io/badge/Contribute-gray?style=for-the-badge&logo=github)](https://github.com/chetanupare/rewind/pulls)
 
 ---
 
 ## License
 
-AGPL-3.0 — See [LICENSE](LICENSE)
+AGPL-3.0 — See [LICENSE](LICENSE) for details.
+
+<br />
 
 ---
 
 <div align="center">
 
-**[Download](https://github.com/chetanupare/rewind/releases)** · **[Docs](FEATURES.md)** · **[Contribute](CONTRIBUTING.md)**
+**[Download](https://github.com/chetanupare/rewind/releases)** | **[Documentation](FEATURES.md)** | **[Contribute](CONTRIBUTING.md)**
 
-**Made with ❤️ by [Chetan Upare](https://github.com/chetanupare)**
+<br />
+
+Made by **[Chetan Upare](https://github.com/chetanupare)**
 
 </div>
