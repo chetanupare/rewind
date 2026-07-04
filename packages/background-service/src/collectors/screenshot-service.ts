@@ -122,7 +122,10 @@ Write-Output "OK|$($bounds.Width)|$($bounds.Height)"`;
 
     const buf = await fsPromises.readFile(filePath);
     
-    const webpBuf = await sharp(buf).webp({ quality: 80 }).toBuffer();
+    const webpBuf = await sharp(buf)
+      .resize({ width: 768, withoutEnlargement: true })
+      .webp({ quality: 60 })
+      .toBuffer();
     const webpPath = filePath.replace('.jpg', '.webp');
     await fsPromises.writeFile(webpPath, webpBuf);
     

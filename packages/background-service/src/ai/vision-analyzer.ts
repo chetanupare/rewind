@@ -76,7 +76,7 @@ export class VisionAnalyzer {
   private async recoverPendingScreenshots(): Promise<void> {
     try {
       const pending = this.db.prepare(
-        'SELECT id, file_path, timestamp FROM screenshots WHERE ai_processed = -1 ORDER BY timestamp ASC LIMIT 20'
+        'SELECT id, file_path, timestamp FROM screenshots WHERE ai_processed IN (0, -1) ORDER BY timestamp ASC LIMIT 30'
       ).all() as Array<{ id: number; file_path: string; timestamp: string }>;
 
       for (const s of pending) {
@@ -88,6 +88,9 @@ export class VisionAnalyzer {
             timestamp: s.timestamp,
             status: 'pending',
           });
+          
+          this.db.prepare('UPDATE screenshots SET ai_processed = -1 WHERE id = ? AND ai_processed = 0')
+            .run(s.id);
         }
       }
 
