@@ -1,6 +1,6 @@
 {
     "name": "@ai-work-memory/electron-app",
-    "version": "0.1.0",
+"version":  "0.2.0",
     "private": true,
     "description": "AI-powered work memory assistant",
     "author": "RewindX",

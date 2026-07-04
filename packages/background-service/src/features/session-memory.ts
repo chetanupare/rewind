@@ -284,7 +284,7 @@ ${commitContext ? 'Git Commits:\n' + commitContext : ''}`;
       endTime: row.end_time,
       summary: row.summary,
       activities: JSON.parse(row.activities || '[]'),
-      commits: JSON.parse(r.commits || '[]'),
+      commits: JSON.parse(row.commits || '[]'),
       screenshots: row.screenshots,
       websites: JSON.parse(row.websites || '[]'),
       productivity: row.productivity,

@@ -90,7 +90,7 @@ export class CognitivePipeline {
     const cognitive = await this.cognitiveEngine.getInsights();
     const mentor = await this.aiMentor.generateProactiveSuggestions();
     const learning = await this.personalityModel.getProductivityInsights();
-    const predictions = [];
+    const predictions: any[] = [];
 
     return {
       cognitive,

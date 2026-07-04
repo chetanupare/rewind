@@ -34,7 +34,7 @@ export class MemoryCompressor {
       FROM screenshots
       WHERE ai_processed = 1 AND timestamp < datetime('now', '-7 days')
       ORDER BY timestamp ASC
-    `).all() as Array<{ id: number; timestamp: string; ai_app: string; ai_task: string; ai_description: string }>;
+    `).all() as any[];
 
     if (oldScreenshots.length < 10) return;
 
@@ -43,7 +43,7 @@ export class MemoryCompressor {
     for (const group of groups) {
       if (group.length < 3) continue;
 
-      const summary = await this.summarizeGroup(group.map(s => ({
+      const summary = await this.summarizeGroup(group.map((s: any) => ({
         app: s.ai_app,
         task: s.ai_task,
         description: s.ai_description,
@@ -57,7 +57,7 @@ export class MemoryCompressor {
         summary
       );
 
-      const ids = group.map(s => s.id);
+      const ids = group.map((s: any) => s.id);
       this.db.prepare(`
         UPDATE screenshots SET ai_description = '[Compressed]' WHERE id IN (${ids.map(() => '?').join(',')})
       `).run(...ids);

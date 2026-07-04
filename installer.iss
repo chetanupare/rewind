@@ -2,7 +2,7 @@
 ; Requires Inno Setup 6+ to compile
 
 #define MyAppName "RewindX"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.2.0"
 #define MyAppPublisher "RewindX"
 #define MyAppURL "https://github.com/chetanupare/rewind"
 #define MyAppExeName "RewindX.exe"

@@ -58,7 +58,27 @@ export type EventType =
   | 'BREAK_ENDED'
   | 'JOURNAL_GENERATED'
   | 'NOTIFICATION_SENT'
-  | 'GIT_COMMIT_DEEP';
+  | 'GIT_COMMIT_DEEP'
+  | 'PREDICTION'
+  | 'PREDICTION_MADE'
+  | 'PREDICTION_VERIFIED'
+  | 'DECISION_RECORDED'
+  | 'EPISODE_COMPLETED'
+  | 'TERMINAL_COMMAND'
+  | 'BROWSER_CONTEXT'
+  | 'SESSION_DETECTED'
+  | 'MENTOR_SUGGESTION'
+  | 'REFLECTION_COMPLETED'
+  | 'SCREENSHOT_BLOCKED'
+  | 'PRIVACY_PAUSE'
+  | 'PRIVACY_BLUR'
+  | 'PRIVACY_SKIP'
+  | 'PRIVACY_ALERT'
+  | 'POWER_PROFILE_CHANGED'
+  | 'BATTERY_UNPLUGGED'
+  | 'BATTERY_PLUGGED'
+  | 'BATTERY_LOW'
+  | 'BATTERY_CRITICAL';
 
 export type CollectorSource =
   | 'window-tracker'
@@ -88,7 +108,18 @@ export type CollectorSource =
   | 'daily-journal'
   | 'smart-notifications'
   | 'git-integration'
-  | 'learning-patterns';
+  | 'learning-patterns'
+  | 'cognitive-engine'
+  | 'episodic-memory'
+  | 'decision-tracker'
+  | 'feedback-loop'
+  | 'ai-reflection'
+  | 'ai-mentor'
+  | 'battery-awareness'
+  | 'browser-intelligence'
+  | 'privacy-guard'
+  | 'session-detector'
+  | 'terminal-capture';
 
 export interface EventPayload {
   id: string;

@@ -149,7 +149,7 @@ export class AIMentor {
     }
   }
 
-  private async suggestion(data: Omit<MentorSuggestion, 'id' | 'timestamp' | 'read' | 'acted'>): Promise<void> {
+  private async suggest(data: Omit<MentorSuggestion, 'id' | 'timestamp' | 'read' | 'acted'>): Promise<void> {
     try {
       const existing = this.db.prepare(`
         SELECT id FROM mentor_suggestions

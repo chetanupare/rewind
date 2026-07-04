@@ -1,6 +1,6 @@
 {
   "name": "ai-work-memory",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Personal Windows AI assistant that observes activity, learns workflows, and builds searchable memory",
   "workspaces": [
