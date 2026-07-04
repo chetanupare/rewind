@@ -5,6 +5,7 @@ import { Config, Database, eventBus } from '@ai-work-memory/shared';
 import { startBackgroundService, stopBackgroundService } from '@ai-work-memory/background-service';
 import { TextSearch, CombinedSearch } from '../../background-service/src/search/search.js';
 import { OllamaClient } from '../../background-service/src/ai/ollama-client.js';
+import { createSplashWindow } from './splash.js';
 
 const PROFIL_LOG = path.join(process.env.APPDATA || '', 'RewindX', 'profiler.log');
 function plog(msg: string) {
@@ -714,6 +715,9 @@ app.whenReady().then(async () => {
   plog('APP_READY');
   const start = performance.now();
 
+  const splash = createSplashWindow();
+  plog(`SPLASH_CREATE: ${Math.round(performance.now() - start)}ms`);
+
   setupIpc();
   plog(`IPC_SETUP: ${Math.round(performance.now() - start)}ms`);
 
@@ -730,6 +734,14 @@ app.whenReady().then(async () => {
   plog(`TRAY_CREATE: ${Math.round(performance.now() - start)}ms`);
 
   await initBackgroundService();
+  plog(`BG_SERVICE_START: ${Math.round(performance.now() - start)}ms`);
+
+  setTimeout(() => {
+    splash.close();
+    mainWindow?.show();
+    plog(`SPLASH_CLOSED: ${Math.round(performance.now() - start)}ms`);
+  }, 2000);
+
   plog(`TOTAL_STARTUP: ${Math.round(performance.now() - start)}ms`);
 
   app.on('activate', () => {

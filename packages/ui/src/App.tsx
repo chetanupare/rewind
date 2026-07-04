@@ -15,6 +15,7 @@ import {
   Play,
   Bell,
   Camera,
+  Globe,
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
@@ -27,8 +28,9 @@ import DeveloperMode from './pages/DeveloperMode';
 import FocusAnalytics from './pages/FocusAnalytics';
 import SessionReplay from './pages/SessionReplay';
 import Screenshots from './pages/Screenshots';
+import BrowserExtension from './pages/BrowserExtension';
 
-type Page = 'dashboard' | 'chat' | 'memory' | 'search' | 'timeline' | 'screenshots' | 'notes' | 'settings' | 'developer' | 'focus' | 'replay';
+type Page = 'dashboard' | 'chat' | 'memory' | 'search' | 'timeline' | 'screenshots' | 'developer' | 'focus' | 'replay' | 'browser' | 'notes' | 'settings';
 
 const navItems = [
   { id: 'dashboard' as Page, icon: LayoutDashboard, label: 'Dashboard' },
@@ -40,6 +42,7 @@ const navItems = [
   { id: 'developer' as Page, icon: Code, label: 'Developer' },
   { id: 'focus' as Page, icon: Zap, label: 'Focus' },
   { id: 'replay' as Page, icon: Play, label: 'Replay' },
+  { id: 'browser' as Page, icon: Globe, label: 'Browser' },
   { id: 'notes' as Page, icon: FileText, label: 'Notes' },
   { id: 'settings' as Page, icon: Settings, label: 'Settings' },
 ];
@@ -71,6 +74,8 @@ export default function App() {
         return <FocusAnalytics />;
       case 'replay':
         return <SessionReplay />;
+      case 'browser':
+        return <BrowserExtension />;
       default:
         return <Dashboard />;
     }
