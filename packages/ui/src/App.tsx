@@ -10,6 +10,10 @@ import {
   User,
   Sparkles,
   LayoutDashboard,
+  Code,
+  Zap,
+  Play,
+  Bell,
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
@@ -18,8 +22,11 @@ import SearchPage from './pages/Search';
 import Timeline from './pages/Timeline';
 import Notes from './pages/Notes';
 import SettingsPage from './pages/Settings';
+import DeveloperMode from './pages/DeveloperMode';
+import FocusAnalytics from './pages/FocusAnalytics';
+import SessionReplay from './pages/SessionReplay';
 
-type Page = 'dashboard' | 'chat' | 'memory' | 'search' | 'timeline' | 'notes' | 'settings';
+type Page = 'dashboard' | 'chat' | 'memory' | 'search' | 'timeline' | 'notes' | 'settings' | 'developer' | 'focus' | 'replay';
 
 const navItems = [
   { id: 'dashboard' as Page, icon: LayoutDashboard, label: 'Dashboard' },
@@ -27,6 +34,9 @@ const navItems = [
   { id: 'memory' as Page, icon: Brain, label: 'Memory' },
   { id: 'search' as Page, icon: Search, label: 'Search' },
   { id: 'timeline' as Page, icon: Clock, label: 'Timeline' },
+  { id: 'developer' as Page, icon: Code, label: 'Developer' },
+  { id: 'focus' as Page, icon: Zap, label: 'Focus' },
+  { id: 'replay' as Page, icon: Play, label: 'Replay' },
   { id: 'notes' as Page, icon: FileText, label: 'Notes' },
   { id: 'settings' as Page, icon: Settings, label: 'Settings' },
 ];
@@ -50,6 +60,12 @@ export default function App() {
         return <Notes />;
       case 'settings':
         return <SettingsPage />;
+      case 'developer':
+        return <DeveloperMode />;
+      case 'focus':
+        return <FocusAnalytics />;
+      case 'replay':
+        return <SessionReplay />;
       default:
         return <Dashboard />;
     }
@@ -57,11 +73,9 @@ export default function App() {
 
   return (
     <div className="app-layout">
-      {/* Background */}
       <div className="bg-glow" />
       <div className="noise-overlay" />
 
-      {/* Sidebar */}
       <nav className="sidebar">
         <div className="sidebar-logo">
           <Sparkles />
@@ -87,7 +101,6 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="main-content">
         <AnimatePresence mode="wait">
           <motion.div
