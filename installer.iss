@@ -82,11 +82,77 @@ var
   ResultCode: Integer;
 begin
   Result := Exec('python', '--version', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+  if not Result then
+    Result := Exec('python3', '--version', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+function InstallPythonSilently(): Boolean;
+var
+  ResultCode: Integer;
+  DownloadPage: TDownloadWizardPage;
+  PythonUrl: string;
+  InstallerPath: string;
+begin
+  Result := False;
+  
+  PythonUrl := 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe';
+  InstallerPath := ExpandConstant('{tmp}\python-installer.exe');
+  
+  DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), nil);
+  
+  try
+    DownloadPage.Clear;
+    DownloadPage.Add(PythonUrl, 'python-installer.exe', '');
+    DownloadPage.Show;
+    
+    try
+      DownloadPage.Download;
+    except
+      DownloadPage.Hide;
+      MsgBox('Failed to download Python installer. Please install Python manually from https://www.python.org', mbError, MB_OK);
+      Exit;
+    end;
+    
+    DownloadPage.Hide;
+    
+    MsgBox('Python installer downloaded. The installation wizard will now open.' + #13#10 + #13#10 + 
+           'IMPORTANT: Please check "Add Python to PATH" during installation!', mbInformation, MB_OK);
+    
+    Exec(InstallerPath, '/passive InstallAllUsers=0 PrependPath=1 Include_test=0', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
+    
+    if ResultCode = 0 then begin
+      Result := True;
+      PythonInstalled := True;
+    end else begin
+      MsgBox('Python installation failed or was cancelled.', mbError, MB_OK);
+    end;
+    
+  finally
+    try
+      DeleteFile(InstallerPath);
+    except
+    end;
+  end;
 end;
 
 procedure InitializeWizard();
+var
+  PythonInstallPage: TInputOptionWizardPage;
 begin
   PythonInstalled := IsPythonInstalled();
+  
+  if not PythonInstalled then begin
+    PythonInstallPage := CreateInputOptionPage(wpSelectTasks,
+      'Python Installation',
+      'Python is required for advanced features',
+      'RewindX uses Python for OCR, document processing, and AI features.' + #13#10 + #13#10 +
+      'Would you like to install Python now?',
+      True, False);
+      
+    PythonInstallPage.Add('Yes, download and install Python 3.11 automatically (recommended)');
+    PythonInstallPage.Add('No, I will install Python myself later');
+    PythonInstallPage.Values[0] := True;
+  end;
   
   PythonSetupPage := CreateInputOptionPage(wpSelectTasks,
     'Python Dependencies', 
@@ -112,7 +178,7 @@ begin
     PythonSetupPage.CheckListBox.ItemEnabled[2] := False;
     PythonSetupPage.CheckListBox.ItemEnabled[3] := False;
     PythonSetupPage.CheckListBox.ItemEnabled[4] := False;
-    PythonSetupPage.DescriptionLabel.Caption := 'Python is not installed. Install Python 3.8+ to enable these features.';
+    PythonSetupPage.DescriptionLabel.Caption := 'Python is required. Install Python first, then select packages.';
     PythonSetupPage.DescriptionLabel.Font.Color := clRed;
   end;
   
@@ -129,8 +195,32 @@ begin
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
+var
+  PythonInstallPage: TInputOptionWizardPage;
 begin
   Result := True;
+  
+  if not PythonInstalled then begin
+    PythonInstallPage := CreateInputOptionPage(wpSelectTasks, '', '', '', True, False);
+    if (CurPageID = PythonInstallPage.ID) then begin
+      if PythonInstallPage.Values[0] then begin
+        if InstallPythonSilently then begin
+          PythonSetupPage.CheckListBox.ItemEnabled[0] := True;
+          PythonSetupPage.CheckListBox.ItemEnabled[1] := True;
+          PythonSetupPage.CheckListBox.ItemEnabled[2] := True;
+          PythonSetupPage.CheckListBox.ItemEnabled[3] := True;
+          PythonSetupPage.CheckListBox.ItemEnabled[4] := True;
+          PythonSetupPage.Values[0] := True;
+          PythonSetupPage.Values[1] := True;
+          PythonSetupPage.Values[2] := True;
+          PythonSetupPage.Values[3] := True;
+          PythonSetupPage.Values[4] := True;
+          PythonSetupPage.DescriptionLabel.Caption := 'Select Python packages to install:';
+          PythonSetupPage.DescriptionLabel.Font.Color := clWindowText;
+        end;
+      end;
+    end;
+  end;
   
   if CurPageID = PythonSetupPage.ID then begin
     InstallPythonDeps := PythonSetupPage.Values[0] or 
