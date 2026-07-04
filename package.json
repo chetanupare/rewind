@@ -15,6 +15,7 @@
     "build:electron": "npm run build -w packages/electron-app",
     "build:ui": "npm run build -w packages/ui",
     "build": "npm run build:shared && npm run build:background && npm run build:ui && npm run build:electron && npm run package -w packages/electron-app",
+    "installer": "npm run build && iscc installer.iss",
     "dev:background": "npm run dev -w packages/background-service",
     "dev:ui": "npm run dev -w packages/ui",
     "dev:electron": "npm run dev -w packages/electron-app",

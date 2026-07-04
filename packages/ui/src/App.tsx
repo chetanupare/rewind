@@ -39,7 +39,7 @@ export default function App() {
       case 'dashboard':
         return <Dashboard />;
       case 'chat':
-        return <Chat onToggleMemory={() => {}} />;
+        return <Chat />;
       case 'memory':
         return <Memory />;
       case 'search':
@@ -56,55 +56,47 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-bg overflow-hidden">
-      {/* Background Effects - CSS only */}
-      <div className="bg-glow-purple" />
-      <div className="bg-glow-pink" />
+    <div className="app-layout">
+      {/* Background */}
+      <div className="bg-glow" />
       <div className="noise-overlay" />
 
       {/* Sidebar */}
-      <nav className="sidebar-nav">
-        {/* Logo */}
-        <div className="mb-6">
-          <div className="w-10 h-10 rounded-xl bg-purple flex items-center justify-center glow-purple">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
+      <nav className="sidebar">
+        <div className="sidebar-logo">
+          <Sparkles />
         </div>
 
-        {/* Nav Items */}
-        <div className="flex-1 flex flex-col items-center gap-2">
+        <div className="sidebar-items">
           {navItems.map((item) => (
-            <motion.button
+            <button
               key={item.id}
               className={`sidebar-item ${currentPage === item.id ? 'active' : ''}`}
               onClick={() => setCurrentPage(item.id)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              title={item.label}
+              data-tooltip={item.label}
             >
-              <item.icon className="w-5 h-5" />
-            </motion.button>
+              <item.icon />
+            </button>
           ))}
         </div>
 
-        {/* User Avatar */}
-        <div className="mt-auto">
-          <div className="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center">
-            <User className="w-4 h-4 text-text-secondary" />
+        <div className="sidebar-user">
+          <div className="sidebar-avatar">
+            <User />
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="ml-[72px] h-screen overflow-hidden">
+      <main className="main-content">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="h-full"
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
           >
             {renderPage()}
           </motion.div>

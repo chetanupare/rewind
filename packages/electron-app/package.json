@@ -1,55 +1,49 @@
 {
-    "name":  "@ai-work-memory/electron-app",
-    "version":  "0.1.0",
-    "private":  true,
-    "description":  "Personal Windows AI assistant",
-    "author":  "RewindX",
-    "main":  "./dist/main.js",
-    "scripts":  {
-                    "build":  "npm run bundle",
-                    "bundle":  "esbuild src/main.ts --bundle --platform=node --format=cjs --outfile=dist/main.js --external:electron --external:better-sqlite3 --external:sharp --minify \u0026\u0026 esbuild src/preload.ts --bundle --platform=node --format=cjs --outfile=dist/preload.js --external:electron --minify",
-                    "dev":  "npm run bundle \u0026\u0026 electron .",
-                    "start":  "electron .",
-                    "package":  "electron-builder --win"
-                },
-    "dependencies":  {
-                         "@ai-work-memory/shared":  "*",
-                         "@ai-work-memory/background-service":  "*"
-                     },
-    "devDependencies":  {
-                            "electron":  "33.4.11",
-                            "electron-builder":  "^26.15.3",
-                            "electron-packager":  "^17.1.2",
-                            "esbuild":  "^0.21.5",
-                            "typescript":  "^5.5.0"
-                        },
-    "build":  {
-                  "appId":  "com.rewindx.app",
-                  "productName":  "RewindX",
-                  "icon":  "build/icon.png",
-                  "directories":  {
-                                      "output":  "../../dist-electron"
-                                  },
-                  "files":  [
-                                "dist/**/*"
-                            ],
-                  "extraResources":  [
-                                         {
-                                             "from":  "../../packages/ui/dist",
-                                             "to":  "ui"
-                                         }
-                                     ],
-                  "asar":  false,
-                  "npmRebuild":  true,
-                  "win":  {
-                              "target":  "portable",
-                              "icon":  "build/icon.png"
-                          },
-                  "nsis":  {
-                               "oneClick":  false,
-                               "allowToChangeInstallationDirectory":  true,
-                               "installerIcon":  "build/icon.png",
-                               "uninstallerIcon":  "build/icon.png"
-                           }
-              }
+    "name": "@ai-work-memory/electron-app",
+    "version": "0.1.0",
+    "private": true,
+    "description": "AI-powered work memory assistant",
+    "author": "RewindX",
+    "main": "./dist/main.js",
+    "scripts": {
+        "build": "npm run bundle",
+        "bundle": "esbuild src/main.ts --bundle --platform=node --format=cjs --outfile=dist/main.js --external:electron --external:better-sqlite3 --external:sharp --minify && esbuild src/preload.ts --bundle --platform=node --format=cjs --outfile=dist/preload.js --external:electron --minify",
+        "dev": "npm run bundle && electron .",
+        "start": "electron .",
+        "package": "electron-builder --win --dir",
+        "installer": "iscc ../../installer.iss"
+    },
+    "dependencies": {
+        "@ai-work-memory/shared": "*",
+        "@ai-work-memory/background-service": "*"
+    },
+    "devDependencies": {
+        "electron": "33.4.11",
+        "electron-builder": "^26.15.3",
+        "esbuild": "^0.21.5",
+        "typescript": "^5.5.0"
+    },
+    "build": {
+        "appId": "com.rewindx.app",
+        "productName": "RewindX",
+        "icon": "build/icon.png",
+        "directories": {
+            "output": "../../dist-electron"
+        },
+        "files": [
+            "dist/**/*"
+        ],
+        "extraResources": [
+            {
+                "from": "../../packages/ui/dist",
+                "to": "ui"
+            }
+        ],
+        "asar": false,
+        "npmRebuild": true,
+        "win": {
+            "target": "dir",
+            "icon": "build/icon.png"
+        }
+    }
 }
