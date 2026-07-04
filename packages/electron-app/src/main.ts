@@ -6,9 +6,13 @@ import { startBackgroundService, stopBackgroundService } from '@ai-work-memory/b
 import { TextSearch, CombinedSearch } from '../../background-service/src/search/search.js';
 import { OllamaClient } from '../../background-service/src/ai/ollama-client.js';
 
-const PROFIL_LOG = path.join(process.env.APPDATA || '', 'AIWorkMemory', 'profiler.log');
+const PROFIL_LOG = path.join(process.env.APPDATA || '', 'RewindX', 'profiler.log');
 function plog(msg: string) {
-  try { fs.appendFileSync(PROFIL_LOG, `[${new Date().toISOString()}] ${msg}\n`); } catch {}
+  try { 
+    const dir = path.dirname(PROFIL_LOG);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(PROFIL_LOG, `[${new Date().toISOString()}] ${msg}\n`); 
+  } catch {}
 }
 
 let mainWindow: BrowserWindow | null = null;
@@ -22,12 +26,27 @@ let ollama: OllamaClient | null = null;
 
 const config = new Config();
 
+function getUiPath(): string {
+  // In development, load from packages/ui/dist
+  // In production, load from resources
+  const devPath = path.join(__dirname, '..', '..', '..', 'ui', 'dist', 'index.html');
+  const prodPath = path.join(process.resourcesPath, 'ui', 'index.html');
+  
+  if (fs.existsSync(devPath)) {
+    return devPath;
+  }
+  return prodPath;
+}
+
 function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1400,
+    height: 900,
+    minWidth: 1000,
+    minHeight: 700,
     show: false,
     title: 'RewindX',
+    backgroundColor: '#090B16',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -35,7 +54,8 @@ function createWindow(): void {
     },
   });
 
-  const uiPath = path.join(process.resourcesPath, 'ui', 'index.html');
+  const uiPath = getUiPath();
+  plog(`Loading UI from: ${uiPath}`);
   mainWindow.loadFile(uiPath);
 
   mainWindow.on('close', (e) => {
@@ -50,10 +70,12 @@ function createWindow(): void {
   });
 
   mainWindow.webContents.on('did-finish-load', () => {
+    plog('UI loaded successfully');
     mainWindow?.show();
   });
 
   mainWindow.webContents.on('did-fail-load', (_e, code, desc) => {
+    plog(`Failed to load UI: ${code} - ${desc}`);
     console.error('Failed to load UI:', code, desc);
   });
 
@@ -63,7 +85,7 @@ function createWindow(): void {
     const now = Date.now();
     const lag = now - lastCheck - 1000;
     if (lag > 100) {
-      plog(`EVENT_LOOP_LAG: ${lag}ms at ${new Date().toISOString()}`);
+      plog(`EVENT_LOOP_LAG: ${lag}ms`);
     }
     lastCheck = now;
   }, 1000);
@@ -72,12 +94,13 @@ function createWindow(): void {
 function createOmnibar(): void {
   omnibarWindow = new BrowserWindow({
     width: 700,
-    height: 100, // Reduced height for simple search bar initially
+    height: 100,
     show: false,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
     skipTaskbar: true,
+    backgroundColor: '#090B16',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -85,8 +108,7 @@ function createOmnibar(): void {
     },
   });
 
-  const uiPath = path.join(process.resourcesPath, 'ui', 'index.html');
-  // Hash routing will be needed for multiple windows, assuming index.html#/omnibar
+  const uiPath = getUiPath();
   omnibarWindow.loadURL(`file://${uiPath}#/omnibar`);
 
   omnibarWindow.on('blur', () => {
@@ -104,14 +126,21 @@ function toggleOmnibar(): void {
   }
 }
 
-
 function createTray(): void {
-  const icon = nativeImage.createEmpty();
+  const iconPath = path.join(__dirname, '..', '..', 'electron-app', 'build', 'icon.png');
+  let icon: nativeImage;
+  
+  if (fs.existsSync(iconPath)) {
+    icon = nativeImage.createFromPath(iconPath);
+  } else {
+    icon = nativeImage.createEmpty();
+  }
+  
   tray = new Tray(icon);
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Show Dashboard',
+      label: 'Show RewindX',
       click: () => {
         mainWindow?.show();
         mainWindow?.focus();
@@ -143,7 +172,6 @@ function profileHandler(name: string, fn: (...args: any[]) => any) {
       const result = await fn(...args);
       const ms = Math.round(performance.now() - start);
       if (ms > 50) plog(`IPC_SLOW: ${name} took ${ms}ms`);
-      else plog(`IPC: ${name} ${ms}ms`);
       return result;
     } catch (err) {
       const ms = Math.round(performance.now() - start);
@@ -225,7 +253,6 @@ function setupIpc(): void {
       const util = require('util');
       const execAsync = util.promisify(exec);
       
-      // Launch VS Code in the project directory
       await execAsync(`code "${projectPath}"`);
       return true;
     } catch (err) {
@@ -271,7 +298,6 @@ function setupIpc(): void {
             .join('\n');
         }
       } else {
-        // Fallback: get recent activities directly from DB
         try {
           const recentStmt = db.prepare(`
             SELECT app_name, window_title, timestamp FROM activities
@@ -288,7 +314,7 @@ function setupIpc(): void {
         }
       }
       const today = new Date().toISOString().split('T')[0];
-      const systemPrompt = `You are an AI work memory assistant. You answer ONLY about the user's computer activity data provided below. You MUST use this data to answer questions. Never say you don't have access — the data is right here. Be specific with app names, times, and details. Current date: ${today}. Rules:
+      const systemPrompt = `You are RewindX, an AI work memory assistant. You answer ONLY about the user's computer activity data provided below. You MUST use this data to answer questions. Never say you don't have access — the data is right here. Be specific with app names, times, and details. Current date: ${today}. Rules:
 1. ONLY answer based on the activity data provided
 2. Summarize patterns, not individual entries
 3. If asked about today, look for today's date in the data
@@ -298,7 +324,7 @@ function setupIpc(): void {
       const response = await ollama.generate({ model: cfg.ai.textModel, prompt: fullPrompt });
       return { role: 'assistant', content: response };
     } catch (err: any) {
-      return { role: 'assistant', content: `Sorry, I encountered an error communicating with Ollama: ${err.message || String(err)}` };
+      return { role: 'assistant', content: `Sorry, I encountered an error: ${err.message || String(err)}` };
     }
   }));
 
@@ -375,7 +401,6 @@ async function initBackgroundService(): Promise<void> {
     combinedSearch = new CombinedSearch(db);
     ollama = new OllamaClient();
 
-    // Listen for proactive AI events
     eventBus.on('SYSTEM_RESOURCE_UPDATE', (event) => {
       const data = event.payload;
       if (data.action === 'THRASHING_DETECTED' || data.action === 'DISTRACTION_NUDGE') {
@@ -403,6 +428,7 @@ async function initBackgroundService(): Promise<void> {
     console.log('Background service started successfully');
   } catch (err) {
     console.error('Failed to start background service:', err);
+    plog(`BG_SERVICE_ERROR: ${err}`);
   }
 }
 
