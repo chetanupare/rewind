@@ -135,7 +135,7 @@ export function GlassButton({
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
         transition: 'all 0.2s ease',
-        fontFamily: 'Manrope, inherit',
+        fontFamily: 'Jost, inherit',
       }}
     >
       {children}

@@ -1,4 +1,8 @@
 import { EventBus, Database, getLogger } from '@ai-work-memory/shared';
+import { spawn, ChildProcess } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
 
 const log = getLogger();
 
@@ -15,68 +19,150 @@ interface WinInfo {
     width: number;
     height: number;
   };
-  monitor?: {
-    index: number;
-    name: string;
-    width: number;
-    height: number;
-    isPrimary: boolean;
-  };
 }
 
+const PS_SCRIPT = `
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+
+public class ActiveWindow {
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+    
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+    
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+    
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+    
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+}
+"@
+
+$lastTitle = ""
+while ($true) {
+    try {
+        $hwnd = [ActiveWindow]::GetForegroundWindow()
+        $sb = New-Object System.Text.StringBuilder 512
+        [ActiveWindow]::GetWindowText($hwnd, $sb, 512) | Out-Null
+        $title = $sb.ToString()
+        
+        $procId = 0
+        [ActiveWindow]::GetWindowThreadProcessId($hwnd, [ref]$procId) | Out-Null
+        
+        $rect = New-Object ActiveWindow+RECT
+        [ActiveWindow]::GetWindowRect($hwnd, [ref]$rect) | Out-Null
+        
+        $proc = Get-Process -Id $procId -ErrorAction SilentlyContinue
+        $name = if ($proc) { $proc.ProcessName } else { "Unknown" }
+        $procPath = if ($proc -and $proc.Path) { $proc.Path } else { "" }
+        
+        $w = $rect.Right - $rect.Left
+        $h = $rect.Bottom - $rect.Top
+        
+        $output = "$procId|$name|$procPath|$title|$($rect.Left)|$($rect.Top)|$w|$h"
+        
+        if ($title -ne $lastTitle) {
+            Write-Output $output
+            $lastTitle = $title
+        }
+    } catch {}
+    Start-Sleep -Milliseconds 500
+}
+`;
+
 export class WindowTracker {
-  private interval: ReturnType<typeof setInterval> | null = null;
+  private psProcess: ChildProcess | null = null;
   private lastWindow: WinInfo | null = null;
   private lastChangeTime: Date = new Date();
-  private pollMs: number;
-  private activeWin: any = null;
+  private scriptPath: string;
 
   constructor(
     private bus: EventBus,
     private db: Database
   ) {
-    this.pollMs = 1000;
+    this.scriptPath = path.join(os.tmpdir(), `rewindx-window-tracker.ps1`);
   }
 
   async start(): Promise<void> {
     try {
-      const activeWinModule = await import('active-win');
-      this.activeWin = activeWinModule.default;
-      log.info('Window tracker started with native module');
-    } catch (err) {
-      log.warn({ err }, 'Failed to load active-win, falling back to basic tracking');
-    }
+      await fs.promises.writeFile(this.scriptPath, PS_SCRIPT, 'utf-8');
 
-    this.interval = setInterval(() => this.poll(), this.pollMs);
+      this.psProcess = spawn('powershell.exe', [
+        '-NoProfile',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', this.scriptPath,
+      ], {
+        windowsHide: true,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      if (this.psProcess.stdout) {
+        this.psProcess.stdout.on('data', (data: Buffer) => {
+          const lines = data.toString().split('\n').filter(l => l.trim());
+          for (const line of lines) {
+            this.processOutput(line.trim());
+          }
+        });
+      }
+
+      this.psProcess.on('error', (err) => {
+        log.warn({ err }, 'Window tracker process error');
+      });
+
+      this.psProcess.on('exit', (code) => {
+        log.warn({ code }, 'Window tracker process exited, restarting...');
+        setTimeout(() => this.start(), 1000);
+      });
+
+      log.info('Window tracker started with persistent PowerShell process');
+    } catch (err) {
+      log.warn({ err }, 'Failed to start window tracker');
+    }
   }
 
   async stop(): Promise<void> {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
+    if (this.psProcess) {
+      this.psProcess.kill();
+      this.psProcess = null;
     }
+    try {
+      await fs.promises.unlink(this.scriptPath);
+    } catch {}
   }
 
-  private async poll(): Promise<void> {
+  private processOutput(line: string): void {
     try {
-      if (!this.activeWin) return;
+      const parts = line.split('|');
+      if (parts.length < 8) return;
 
-      const result = await this.activeWin();
-      if (!result) return;
+      const [pidStr, name, procPath, title, xStr, yStr, wStr, hStr] = parts;
+      const pid = parseInt(pidStr, 10) || 0;
+      const x = parseInt(xStr, 10) || 0;
+      const y = parseInt(yStr, 10) || 0;
+      const width = parseInt(wStr, 10) || 0;
+      const height = parseInt(hStr, 10) || 0;
 
       const currentWindow: WinInfo = {
-        title: result.title || '',
+        title: title || '',
         owner: {
-          name: result.owner?.name || 'Unknown',
-          processId: result.owner?.processId || 0,
-          path: result.owner?.path || '',
+          name: name || 'Unknown',
+          processId: pid,
+          path: procPath || '',
         },
-        bounds: result.bounds ? {
-          x: result.bounds.x,
-          y: result.bounds.y,
-          width: result.bounds.width,
-          height: result.bounds.height,
-        } : { x: 0, y: 0, width: 0, height: 0 },
+        bounds: { x, y, width, height },
       };
 
       const now = new Date();
@@ -120,7 +206,7 @@ export class WindowTracker {
         this.lastChangeTime = now;
       }
     } catch (err) {
-      // Silently handle errors to avoid crashing
+      // Silently handle parse errors
     }
   }
 
