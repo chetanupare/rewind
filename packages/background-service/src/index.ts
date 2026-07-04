@@ -1,6 +1,7 @@
 import { Database, getConfig, getLogger, ensureQdrantCollection } from '@ai-work-memory/shared';
 import type { EventBus, AppConfig } from '@ai-work-memory/shared';
-import { UnifiedTracker } from './collectors/unified-tracker.js';
+import { NativeWindowTracker } from './collectors/native-window-tracker.js';
+import { NativeInputTracker } from './collectors/native-input-tracker.js';
 import { ScreenshotService } from './collectors/screenshot-service.js';
 import { ClipboardMonitor } from './collectors/clipboard-monitor.js';
 import { SystemEvents } from './collectors/system-events.js';
@@ -13,6 +14,7 @@ import { SessionBuilder } from './pipeline/session-builder.js';
 import { VisionAnalyzer } from './ai/vision-analyzer.js';
 import { startScheduler } from './scheduler.js';
 import { startRetentionManager, stopRetentionManager } from './cleanup/retention-manager.js';
+import { PluginManager } from './plugins/index.js';
 import {
   SemanticTimeline,
   MemoryBookmarks,
@@ -25,12 +27,17 @@ import {
   SessionReplay,
   MemoryApi,
 } from './features/index.js';
+import {
+  CognitiveEngine,
+  MemoryIntelligence,
+} from './brain/index.js';
 
 const log = getLogger();
 
 let collectors: Array<{ stop(): Promise<void> }> = [];
 let memoryApi: MemoryApi | null = null;
 let nlAutomation: NaturalLanguageAutomation | null = null;
+let pluginManager: PluginManager | null = null;
 
 export async function startBackgroundService(
   database: Database,
@@ -46,8 +53,12 @@ export async function startBackgroundService(
     log.warn({ err }, 'Qdrant not available — vector search disabled');
   }
 
-  // Unified tracker replaces window, keyboard, mouse trackers
-  const unifiedTracker = new UnifiedTracker(bus, database);
+  // Initialize plugin manager
+  pluginManager = new PluginManager(database, bus, config as any);
+
+  // Initialize native trackers
+  const windowTracker = new NativeWindowTracker(bus, database);
+  const inputTracker = new NativeInputTracker(bus);
   const screenshotService = new ScreenshotService(bus, database);
   const clipboardMonitor = new ClipboardMonitor(bus, database);
   const systemEvents = new SystemEvents(bus, database);
@@ -59,7 +70,11 @@ export async function startBackgroundService(
   const sessionBuilder = new SessionBuilder(bus, database);
   const visionAnalyzer = new VisionAnalyzer(bus, database);
 
-  // Lazy load features
+  // Initialize brain
+  const cognitiveEngine = new CognitiveEngine(database, bus);
+  const memoryIntelligence = new MemoryIntelligence(database, bus, cognitiveEngine.getGraph() as any);
+
+  // Initialize features
   log.info('Initializing features...');
   const semanticTimeline = new SemanticTimeline(database, bus);
   const memoryBookmarks = new MemoryBookmarks(database, bus);
@@ -75,9 +90,12 @@ export async function startBackgroundService(
   await memoryApi.start();
   log.info({ port: memoryApi.getPort() }, 'Memory API started');
 
-  // Start collectors in sequence with delays to reduce startup memory spike
-  await unifiedTracker.start();
-  log.info('Unified tracker started (window + keyboard + mouse)');
+  // Start collectors with staggered delays
+  await windowTracker.start();
+  log.info('Native window tracker started');
+
+  await inputTracker.start();
+  log.info('Native input tracker started');
 
   await screenshotService.start();
   log.info('Screenshot service started');
@@ -110,15 +128,15 @@ export async function startBackgroundService(
   log.info('Vision analyzer started');
 
   collectors = [
-    unifiedTracker, screenshotService, clipboardMonitor, systemEvents,
-    filesystemWatcher, gitTracker, flowStateTracker, thrashingDetector,
-    wikiGenerator, sessionBuilder, visionAnalyzer,
+    windowTracker, inputTracker, screenshotService, clipboardMonitor,
+    systemEvents, filesystemWatcher, gitTracker, flowStateTracker,
+    thrashingDetector, wikiGenerator, sessionBuilder, visionAnalyzer,
   ];
 
   startScheduler(database, bus);
   startRetentionManager(config);
 
-  log.info('RewindX background service running');
+  log.info('RewindX background service running with native APIs');
 }
 
 export async function stopBackgroundService(): Promise<void> {
@@ -132,6 +150,11 @@ export async function stopBackgroundService(): Promise<void> {
   if (nlAutomation) {
     nlAutomation.destroy();
     nlAutomation = null;
+  }
+
+  if (pluginManager) {
+    await pluginManager.stopAll();
+    pluginManager = null;
   }
 
   stopRetentionManager();

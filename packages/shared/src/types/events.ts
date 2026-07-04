@@ -81,7 +81,8 @@ export type EventType =
   | 'BATTERY_CRITICAL'
   | 'CODE_ANALYZED'
   | 'DOCUMENT_PROCESSED'
-  | 'TRANSCRIPT_READY';
+  | 'TRANSCRIPT_READY'
+  | 'KNOWLEDGE_CONFLICT';
 
 export type CollectorSource =
   | 'window-tracker'
@@ -122,7 +123,11 @@ export type CollectorSource =
   | 'browser-intelligence'
   | 'privacy-guard'
   | 'session-detector'
-  | 'terminal-capture';
+  | 'terminal-capture'
+  | 'code-intelligence'
+  | 'document-intelligence'
+  | 'speech-recognition'
+  | 'memory-intelligence';
 
 export interface EventPayload {
   id: string;

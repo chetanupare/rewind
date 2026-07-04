@@ -3,408 +3,195 @@
 > **Version:** 0.3.0  
 > **Last Updated:** July 5, 2026  
 > **Platform:** Windows 10/11  
-> **Architecture:** Electron + React + TypeScript + SQLite + Cognitive Engine
+> **Architecture:** Electron + React + TypeScript + SQLite + Cognitive Brain
 
 ---
 
 ## Executive Summary
 
-RewindX is not just a work memory assistant — it's a **cognitive brain** that thinks, learns, predicts, and remembers like a human.
+RewindX is a **cognitive brain** for your computer. It doesn't just record what you do — it **understands**, **learns**, **predicts**, and **remembers** everything.
 
 ```
-Traditional Apps:    Record → Store → Search
-RewindX:            Perceive → Understand → Learn → Predict → Remember → Reflect
-```
-
-**The Brain has 19 modules** that transform raw events into knowledge, episodes, decisions, and wisdom.
-
----
-
-## 🧠 The Cognitive Brain
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        REWINDX BRAIN                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
-│  │  Sensory    │───▶│  Working    │───▶│  Episode    │        │
-│  │  Memory     │    │  Memory     │    │  Memory     │        │
-│  └─────────────┘    └─────────────┘    └─────────────┘        │
-│         │                  │                  │                 │
-│         ▼                  ▼                  ▼                 │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
-│  │  Intent     │    │  Goal       │    │  Pattern    │        │
-│  │  Engine     │    │  Detection  │    │  Learner    │        │
-│  └─────────────┘    └─────────────┘    └─────────────┘        │
-│         │                  │                  │                 │
-│         ▼                  ▼                  ▼                 │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
-│  │  Concept    │    │  Decision   │    │  Mistake    │        │
-│  │  Learner    │    │  Tracker    │    │  Learner    │        │
-│  └─────────────┘    └─────────────┘    └─────────────┘        │
-│         │                  │                  │                 │
-│         ▼                  ▼                  ▼                 │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
-│  │  Knowledge  │    │  Long-Term  │    │  Confidence │        │
-│  │  Graph      │    │  Memory     │    │  Evolution  │        │
-│  └─────────────┘    └─────────────┘    └─────────────┘        │
-│         │                  │                  │                 │
-│         ▼                  ▼                  ▼                 │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
-│  │  Prediction │    │  Reasoning  │    │  Curiosity  │        │
-│  │  Engine     │    │  Engine     │    │  Engine     │        │
-│  └─────────────┘    └─────────────┘    └─────────────┘        │
-│         │                  │                  │                 │
-│         ▼                  ▼                  ▼                 │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
-│  │  Memory     │    │  AI         │    │  User       │        │
-│  │  Compressor │    │  Reflection │    │  Personality│        │
-│  └─────────────┘    └─────────────┘    └─────────────┘        │
-│                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │                     AI MENTOR                           │  │
-│  │          Proactive guidance and suggestions             │  │
-│  └─────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+Traditional Tools:  Record → Store → Search
+RewindX:           Perceive → Understand → Learn → Predict → Remember
 ```
 
 ---
 
-### 1. Episodic Memory ⭐⭐⭐⭐⭐
-
-**Humans don't remember screenshots — we remember episodes.**
+## 🧠 Cognitive Brain (22 Modules)
 
 ```
-Instead of: Screenshot → Window → Git → Browser
-RewindX:    Episode: "Implement JWT Authentication"
-            Start: 10:15 | End: 11:45
-            Goal: Add Refresh Token
-            Outcome: Completed
-            Problems: Token expired
-            Solution: Changed middleware
-            Confidence: 97%
+┌─────────────────────────────────────────────────────────┐
+│                     REWINDX BRAIN                       │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Perception    Memory         Reasoning                  │
+│  ├─ Intent     ├─ Working     ├─ Prediction             │
+│  ├─ Concept    ├─ Episodes    ├─ Confidence             │
+│  └─ Pattern    ├─ Long-term   └─ Feedback Loop          │
+│                ├─ Knowledge                               │
+│  Learning      │  Graph       Action                     │
+│  ├─ Mistakes   ├─ Decisions   ├─ AI Mentor              │
+│  ├─ Personality├─ Memory      ├─ Reflection             │
+│  └─ Curiosity  │  Intelligence└─ Goals                  │
+│                └─ Compression                            │
+└─────────────────────────────────────────────────────────┘
 ```
 
-Every day becomes 20-50 meaningful episodes.
+### Core Modules
 
-| Feature | Details |
-|---------|---------|
-| Auto-generation | Episodes created from activity patterns |
-| Goal detection | AI detects what you're trying to accomplish |
-| Outcome tracking | Completed, abandoned, blocked |
-| Problem/Solution | Records issues and how they were fixed |
-| Lessons learned | Extracts knowledge from episodes |
-| Confidence | Each episode has confidence score |
+| Module | Purpose |
+|--------|---------|
+| Cognitive Engine | Main orchestrator |
+| Knowledge Graph | Entity relationships |
+| Long-Term Memory | Importance-based with decay |
+| Episodic Memory | Episodes, not events |
+| Working Memory | Current context |
+| Concept Learner | Auto-learns topics |
+| Intent Engine | Detects what you're doing |
+| Pattern Learner | Finds sequences |
+| Prediction Engine | Predicts next action |
+| Decision Tracker | Remembers decisions |
+| Mistake Learner | Personal error database |
+| Confidence Evolution | Dynamic scoring |
+| User Personality | Adapts to your style |
+| AI Reflection | Nightly thinking |
+| Reasoning Engine | Evidence-based answers |
+| AI Mentor | Proactive suggestions |
+| Curiosity Engine | Asks questions |
+| Feedback Loop | Self-improving |
+| Cognitive Pipeline | Orchestrates all |
+| Memory Intelligence | Advanced memory features |
+| Confidence System | Prevents hallucination |
+
+### Memory Intelligence Features
+
+| Feature | Description |
+|---------|-------------|
+| Confidence Decay | Memories fade if not accessed |
+| Memory Reinforcement | Frequently accessed memories get stronger |
+| Contradiction Detection | Detects when knowledge conflicts |
+| Memory Aging | Fresh → Warm → Cold → Archived |
+| Topic Evolution | Tracks how technologies stack grows |
+| Relationship Discovery | Auto-links related entities |
+| Knowledge Validation | Multi-source verification |
+| Event Fusion | Combines events into workflows |
+| Automatic Tags | Auto-tags activities |
+| Episode Rating | Rates episodes (useful/failed/etc) |
+| Smart Forgetting | Compresses old memories |
+| Self Diagnosis | Checks brain accuracy |
+| Knowledge Gaps | Suggests what to learn |
+| Duplicate Merge | Merges similar entries |
+| Memory Health Dashboard | Brain stats UI |
+| AI Self-Explanation | Explains confidence |
+| Memory DNA | Fingerprints every memory |
+| Cognitive Metrics | Brain performance stats |
 
 ---
 
-### 2. Working Memory
+## 📸 Collectors (10)
 
-**Short-term context — what you're doing RIGHT NOW.**
-
-```
-Current State:
-├── Project: RewindX
-├── Task: OCR Pipeline
-├── File: vision.ts
-├── App: VS Code
-├── Recent Decisions: Changed OCR Engine
-├── Pending: Test PDF support
-└── Blocked By: Tesseract issue
-```
-
-When chatting, AI already knows your context — no search needed.
-
----
-
-### 3. Decision Tracking ⭐⭐⭐⭐⭐
-
-**Remember decisions, not just code.**
-
-```
-Decision: Moved to SQLite
-Reason: Performance
-Alternatives: DuckDB
-Outcome: Successful
-Confidence: 92%
-
-Months later:
-Q: "Why did I switch to SQLite?"
-A: "You switched for performance reasons. DuckDB was the alternative.
-    The decision was successful with 92% confidence."
-```
-
----
-
-### 4. Learning from Mistakes
-
-**Personal error database — your own StackOverflow.**
-
-```
-Error: npm install failed
-Solution: Delete node_modules, clear cache
-Occurrences: 5 times
-Confidence: 95%
-
-Next time AI recognizes:
-"Seen before. Same error. Same fix."
-```
-
-| Feature | Details |
-|---------|---------|
-| Error detection | From terminal, screenshots, logs |
-| Solution tracking | Records what fixed it |
-| Pattern recognition | Recognizes repeated errors |
-| Confidence growth | Increases with successful fixes |
-
----
-
-### 5. Confidence Evolution
-
-**AI learns whether it was right.**
-
-```
-Prediction: 80% confidence
-If correct → 92%
-If wrong → 45%
-
-AI continuously calibrates.
-```
-
----
-
-### 6. User Personality Model
-
-**Understands how you work.**
-
-```
-Developer Style:
-- Night coder
-- Long focus sessions
-- Rare commits
-- Heavy research
-- Uses AI frequently
-- Prefers keyboard shortcuts
-- Debugs before writing tests
-```
-
-AI adapts to your style.
-
----
-
-### 7. AI Reflection ⭐⭐⭐⭐⭐
-
-**Every night, the AI thinks.**
-
-```
-Today's Reflection:
-- What surprised me?
-- What did I learn?
-- Which memories became stronger?
-- Which became weaker?
-- Any repeated mistakes?
-- Any new habits?
-- Anything worth bookmarking?
-- Should memories merge?
-- Did predictions improve?
-```
-
-No user interaction required.
-
----
-
-### 8. Reasoning Engine
-
-**Actually infers answers.**
-
-```
-Q: "Why was productivity low yesterday?"
-
-AI Reasons:
-- 3 meetings → context switches
-- 42 app switches → no focus
-- Slack open → distractions
-- No focus sessions
-- No commits
-
-Conclusion: "Productivity was low due to meetings and context switching."
-```
-
----
-
-### 9. AI Mentor
-
-**Proactively helps you improve.**
-
-```
-"You've been researching Redis for 2 weeks.
- Want me to create a practice project?"
-
-"You solved 5 JWT bugs this month.
- Should I generate your authentication guide?"
-
-"You abandoned 3 tasks today.
- Consider breaking them into smaller pieces."
-```
-
----
-
-## 📸 Collectors (Data Collection)
-
-| Collector | Status | Method | Data |
-|-----------|--------|--------|------|
-| Window Tracker | ✅ | PowerShell | App, title, PID, bounds |
-| Keyboard Tracker | ✅ | PowerShell | Keys, shortcuts, speed |
-| Mouse Tracker | ✅ | PowerShell | Clicks, scrolls |
-| Screenshot Service | ✅ | PowerShell + Sharp | Images with AI analysis |
-| Clipboard Monitor | ✅ | PowerShell | Text, code, URLs |
-| Git Tracker | ✅ | simple-git | Commits, branches, files |
-| Browser Tracker | ✅ | PowerShell | Tabs, URLs, sites |
-| Terminal Capture | ✅ | PowerShell | Commands, errors |
-| System Events | ✅ | Electron | Power, lock, sleep |
-| Filesystem Watcher | ✅ | Chokidar | File changes |
+| Collector | Captures | Method |
+|-----------|----------|--------|
+| Window Tracker | App, title, PID, bounds | PowerShell (persistent) |
+| Keyboard | Keys, shortcuts, speed | PowerShell hook |
+| Mouse | Clicks, scrolls | PowerShell hook |
+| Screenshot | Images with AI analysis | PowerShell + Sharp |
+| Clipboard | Text, code, URLs | PowerShell polling |
+| Git | Commits, branches, files | simple-git |
+| Browser | Tabs, URLs, sites | Process detection |
+| Terminal | Commands, errors | Window title parsing |
+| System | Power, lock, sleep | Electron powerMonitor |
+| Filesystem | File changes | Chokidar |
 
 ---
 
 ## 🧪 AI Pipeline
 
-| Component | Status | Model | Purpose |
-|-----------|--------|-------|---------|
-| Vision Analyzer | ✅ | qwen2.5vl:3b | Screenshot analysis |
-| OCR Service | ⚠️ | Tesseract/Python | Text extraction |
-| Embedding Generator | ✅ | nomic-embed-text | Semantic search |
-| Text Generator | ✅ | qwen2.5-coder:3b | Summaries, chat |
+| Component | Model | Purpose |
+|-----------|-------|---------|
+| Vision Analyzer | qwen2.5-vl:3b | Screenshot analysis |
+| OCR Service | Tesseract/EasyOCR/PaddleOCR | Text extraction |
+| Embedding Generator | nomic-embed-text | Semantic search |
+| Text Generator | qwen2.5-coder:3b | Summaries, chat |
+| Multi-Engine OCR | Auto-selects best | Intelligent OCR |
+| Document Intelligence | PyMuPDF, python-docx | PDF/DOCX extraction |
+| Speech Recognition | Whisper | Audio transcription |
+| Code Intelligence | tree-sitter patterns | Code analysis |
+| Entity Recognition | spaCy/regex | People, projects, tech |
+| Enhanced Search | BM25 + Embeddings + Reranker | Smart search |
 
 ---
 
-## 🚀 Features (28 Total)
+## ⚡ Features (28+)
 
 ### Context & Awareness
-1. **Context Switch Detection** — Detects intentional vs distraction switches
-2. **Smart Session Detection** — Auto-detects coding/meeting/research/debugging
-3. **Adaptive Screenshot Capture** — 20s code, 1min meetings, pause gaming
-4. **Privacy Guard** — Incognito, DRM, banking detection
+- **Context Switch Detection** — Intentional vs distraction
+- **Smart Session Detection** — Auto-detects coding/meeting/debugging
+- **Adaptive Screenshot Capture** — 20s code, 1min meetings, pause gaming
+- **Privacy Guard** — Incognito, DRM, banking detection
 
 ### Intelligence
-5. **Browser Intelligence** — Recognizes GitHub, SO, ChatGPT, Linear, etc.
-6. **Meeting Intelligence** — Auto-detects meetings, generates summaries
-7. **Deep Git Integration** — Tracks repos, branches, commits, files
-8. **Terminal Command Capture** — Extracts commands and errors
+- **Browser Intelligence** — GitHub, SO, ChatGPT, Linear, Jira
+- **Meeting Intelligence** — Auto-detects meetings, generates notes
+- **Deep Git Integration** — Tracks repos, branches, commits
+- **Terminal Command Capture** — Extracts commands and errors
 
 ### Productivity
-9. **Focus Mode (Pomodoro)** — 25min work / 5min break cycles
-10. **Focus Analytics** — Deep work, interruptions, productivity scoring
-11. **Smart Notifications** — Distraction alerts, commit reminders
-12. **Battery Awareness** — 4 power profiles, auto-adjusts
+- **Focus Mode (Pomodoro)** — 25min work / 5min break
+- **Focus Analytics** — Deep work, interruptions, scoring
+- **Smart Notifications** — Distraction alerts, commit reminders
+- **Battery Awareness** — 4 power profiles
 
 ### Memory
-13. **Daily Journal Generator** — AI-generated daily summaries
-14. **Memory Bookmarks** — Save important moments
-15. **Cross-Memory Linking** — Links screenshots ↔ commits ↔ activities
-16. **Session Replay** — Reconstruct coding sessions
+- **Daily Journal Generator** — AI-generated summaries
+- **Memory Bookmarks** — Save important moments
+- **Cross-Memory Linking** — Links screenshots ↔ commits
+- **Session Replay** — Reconstruct coding sessions
 
 ### Automation
-17. **Natural Language Automation** — "Remind me tomorrow about..."
-18. **Learning Patterns** — Learns habits and patterns
-19. **Project Detector** — Auto-detects projects from activity
+- **Natural Language Automation** — "Remind me tomorrow..."
+- **Learning Patterns** — Learns habits and patterns
+- **Project Detector** — Auto-detects projects
 
 ### Integration
-20. **Windows Integration** — Jump Lists, Toast notifications
-21. **Browser Extension** — Chrome/Edge tab tracking
-22. **Memory API** — HTTP API for external access
-23. **Smart Clipboard** — History, pin, favorites, search
+- **Windows Integration** — Jump Lists, Toast notifications
+- **Browser Extension** — Chrome/Edge tab tracking
+- **Memory API** — HTTP API on port 48291
+- **Smart Clipboard** — History, pin, favorites
 
 ---
 
-## 🖥️ UI Pages (15)
+## 🖥️ UI Pages (16)
 
-| Page | Features |
-|------|----------|
-| Dashboard | Stats, activity feed, time travel, top apps |
-| Chat | AI chat with context awareness |
-| Memory | Bookmark management with filters |
+| Page | Description |
+|------|-------------|
+| Dashboard | Stats, activity feed, time travel |
+| Chat | AI conversation with context |
+| Memory | Bookmark management |
+| Memory Health | Brain stats and metrics |
 | Search | Full-text and semantic search |
-| Timeline | Hourly activity timeline |
+| Timeline | Hourly activity view |
 | Screenshots | Gallery with AI analysis |
-| Developer Mode | Git, terminal, file correlation |
+| Developer Mode | Git, terminal correlation |
 | Focus Analytics | Productivity metrics |
-| Session Replay | Playback coding sessions |
-| Browser Extension | Install guide |
+| Session Replay | Playback sessions |
+| Browser Extension | Install guide + data view |
 | Notes | Bookmark-based notes |
-| Reports | Daily/weekly reports |
+| Reports | Daily/weekly summaries |
 | Settings | Configuration |
 | Omnibar | Quick search (Alt+Space) |
 | Splash Screen | Animated startup |
 
 ---
 
-## 🗄️ Database Schema
+## 🎨 Design System
 
-### Core Tables
-- `activities` — Window/app usage
-- `screenshots` — Images with AI analysis
-- `sessions` — Work sessions
-- `projects` — Detected projects
-
-### Brain Tables
-- `kg_nodes`, `kg_edges`, `kg_facts` — Knowledge graph
-- `ltm_memories` — Long-term memory
-- `concepts` — Learned concepts
-- `learned_patterns` — Detected patterns
-- `episodes`, `episode_events` — Episodic memory
-- `working_memory_snapshots` — Working memory
-- `decisions`, `decision_outcomes` — Decision tracking
-- `mistakes`, `mistake_solutions` — Mistake learning
-- `confidence_history`, `confidence_models` — Confidence evolution
-- `user_personality` — User personality
-- `reflections` — AI reflections
-- `curiosity_questions`, `learning_topics` — Curiosity engine
-- `mentor_suggestions` — AI mentor
-
-### Feature Tables
-- `context_switches` — Context switching
-- `focus_sessions`, `pomodoro_sessions` — Focus mode
-- `daily_journals` — Daily journals
-- `meetings_detected` — Meeting intelligence
-- `git_repos`, `git_commits` — Git integration
-- `clipboard_history` — Clipboard
-- `browser_contexts` — Browser intelligence
-- `terminal_commands` — Terminal capture
-- `memory_links` — Cross-memory linking
-- `reminders`, `automation_rules` — NL automation
-- `notifications` — Smart notifications
-- `privacy_events` — Privacy guard
-- `battery_events` — Battery awareness
-
----
-
-## ⚡ Performance
-
-| Metric | Target | Current |
-|--------|--------|---------|
-| CPU | < 5% | ~3% |
-| RAM | < 300 MB | ~300 MB |
-| Startup | < 3s | ~1.5s |
-| Screenshot | < 1s | ~500ms |
-| AI Analysis | < 30s | ~20-60s |
-| Search | < 100ms | ~50ms |
-
----
-
-## 🔧 Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `OLLAMA_HOST` | localhost | Ollama host |
-| `OLLAMA_PORT` | 11434 | Ollama port |
-| `OLLAMA_VISION_MODEL` | qwen2.5vl:3b | Vision model |
-| `OLLAMA_TEXT_MODEL` | qwen2.5-coder:3b | Text model |
-| `OLLAMA_EMBEDDING_MODEL` | nomic-embed-text | Embedding model |
-| `QDRANT_URL` | http://localhost:6333 | Vector DB URL |
-| `QDRANT_API_KEY` | (empty) | Qdrant API key |
+- **Font:** Jost (geometric sans-serif)
+- **Colors:** Purple (#5B2EFF), Pink (#FF4FA3), Navy (#111827)
+- **Style:** Dark theme, glass morphism, premium SaaS
+- **Animations:** Framer Motion, smooth transitions
+- **Background:** Deep navy with radial glows
 
 ---
 
@@ -417,25 +204,94 @@ rewindx/
 │   ├── background-service/  # Collectors, AI, Brain
 │   │   └── src/
 │   │       ├── collectors/  # 10 data collectors
-│   │       ├── ai/          # Vision, OCR, embeddings
-│   │       ├── features/    # 28 features
-│   │       ├── brain/       # 19 cognitive modules
+│   │       ├── ai/          # Vision, OCR, embeddings, NER
+│   │       ├── features/    # 28+ features
+│   │       ├── brain/       # 22 cognitive modules
 │   │       └── pipeline/    # Session builder
 │   ├── ui/                  # React frontend
 │   │   └── src/
-│   │       ├── pages/       # 15 pages
+│   │       ├── pages/       # 16 pages
 │   │       ├── components/  # Shared components
-│   │       └── styles/      # CSS
+│   │       └── styles/      # CSS with Jost font
 │   └── electron-app/        # Electron main
 ├── browser-extension/       # Chrome/Edge
-└── installer.iss            # Inno Setup
+├── installer.iss            # Inno Setup
+├── setup-python.bat         # Python deps installer
+├── python-requirements.txt  # Python packages
+├── FEATURES.md              # This file
+├── ROADMAP.md               # Development plan
+├── CHANGELOG.md             # Version history
+├── CONTRIBUTING.md          # How to contribute
+├── SECURITY.md              # Security policy
+├── CODE_OF_CONDUCT.md       # Community guidelines
+└── AGENTS.md                # AI context
 ```
+
+---
+
+## 🔧 Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OLLAMA_HOST` | localhost | Ollama host |
+| `OLLAMA_PORT` | 11434 | Ollama port |
+| `OLLAMA_VISION_MODEL` | qwen2.5-vl:3b | Vision model |
+| `OLLAMA_TEXT_MODEL` | qwen2.5-coder:3b | Text model |
+| `OLLAMA_EMBEDDING_MODEL` | nomic-embed-text | Embedding model |
+| `QDRANT_URL` | http://localhost:6333 | Vector DB URL |
+| `QDRANT_API_KEY` | (empty) | Qdrant API key |
+
+---
+
+## 📊 Performance
+
+| Metric | Target | Current |
+|--------|--------|---------|
+| CPU | < 5% | ~3% |
+| RAM | < 300 MB | ~300 MB |
+| Startup | < 3s | ~1.5s |
+| Screenshot | < 1s | ~500ms |
+| AI Analysis | < 30s | ~20-60s |
+| Search | < 100ms | ~50ms |
+| Window Tracking | < 5ms | ~1ms |
+
+---
+
+## 🗺️ Roadmap
+
+| Phase | Feature | Status |
+|-------|---------|--------|
+| 1 | Cognitive Core | ✅ Done |
+| 2 | Goal Engine | 🔨 In Progress |
+| 3 | Active Memory | ✅ Done |
+| 4 | Planning Engine | 📋 Planned |
+| 5 | Self Reflection | ✅ Done |
+| 6 | Memory Consolidation | ✅ Done |
+| 7 | Autonomous Research | 🔨 In Progress |
+| 8 | Skill Graph | 📋 Planned |
+| 9 | Personal Documentation | 📋 Planned |
+| 10 | Autonomous Improvements | 📋 Planned |
+| 11 | Agent System | 📋 Planned |
+| 12 | Digital Twin | 📋 Vision |
+
+---
+
+## 📚 Documentation
+
+- [README.md](README.md) — Getting started
+- [FEATURES.md](FEATURES.md) — This file
+- [ROADMAP.md](ROADMAP.md) — Development plan
+- [CHANGELOG.md](CHANGELOG.md) — Version history
+- [CONTRIBUTING.md](CONTRIBUTING.md) — How to contribute
+- [SECURITY.md](SECURITY.md) — Security policy
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — Community guidelines
+- [AGENTS.md](AGENTS.md) — AI context for development
 
 ---
 
 ## 🏆 What Makes RewindX Unique
 
-1. **It's a Brain** — Not just storage, but understanding
+1. **It's a Brain** — Not storage, but understanding
 2. **Episodic Memory** — Remembers episodes, not screenshots
 3. **Decision Tracking** — Remembers why, not just what
 4. **Learns from Mistakes** — Personal error database
@@ -445,7 +301,12 @@ rewindx/
 8. **Reasoning Engine** — Actually infers answers
 9. **AI Mentor** — Proactively helps you improve
 10. **Memory Decays** — Important things persist, trivial fades
+11. **Contradiction Detection** — Knows when knowledge conflicts
+12. **Knowledge Gaps** — Suggests what to learn next
+13. **Smart Forgetting** — Compresses 500 screenshots → 18 episodes
+14. **Memory Health Dashboard** — See your brain grow
+15. **AI Self-Explanation** — Shows why it answered that way
 
 ---
 
-*RewindX v0.3.0 — The Cognitive Brain*
+*RewindX v0.3.0 — Your AI-Powered Second Brain*
