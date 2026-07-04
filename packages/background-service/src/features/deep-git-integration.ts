@@ -136,7 +136,7 @@ export class DeepGitIntegration {
       const git = simpleGit(repoPath);
 
       const status = await git.status();
-      const log = await git.log({ maxCount: 1 });
+      const gitLogResult = await git.log({ maxCount: 1 });
       const branches = await git.branchLocal();
 
       const repo: GitRepo = {
@@ -144,8 +144,8 @@ export class DeepGitIntegration {
         name: path.basename(repoPath),
         branches: [],
         currentBranch: status.current || 'unknown',
-        lastActivity: log.latest?.date || new Date().toISOString(),
-        totalCommits: log.total,
+        lastActivity: gitLogResult.latest?.date || new Date().toISOString(),
+        totalCommits: gitLogResult.total,
       };
 
       for (const branch of branches.all) {

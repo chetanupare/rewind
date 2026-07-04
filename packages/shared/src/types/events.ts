@@ -47,7 +47,18 @@ export type EventType =
   | 'FOCUS_SESSION_ENDED'
   | 'REMINDER_DUE'
   | 'NOTIFICATION'
-  | 'CREATE_BOOKMARK';
+  | 'CREATE_BOOKMARK'
+  | 'CONTEXT_SWITCH'
+  | 'THRASHING_DETECTED'
+  | 'FOCUS_STARTED'
+  | 'FOCUS_COMPLETED'
+  | 'FOCUS_STOPPED'
+  | 'FOCUS_BLOCKED_APP'
+  | 'BREAK_STARTED'
+  | 'BREAK_ENDED'
+  | 'JOURNAL_GENERATED'
+  | 'NOTIFICATION_SENT'
+  | 'GIT_COMMIT_DEEP';
 
 export type CollectorSource =
   | 'window-tracker'
@@ -71,7 +82,13 @@ export type CollectorSource =
   | 'memory-bookmarks'
   | 'focus-analytics'
   | 'nl-automation'
-  | 'cross-memory-linking';
+  | 'cross-memory-linking'
+  | 'context-detector'
+  | 'focus-mode'
+  | 'daily-journal'
+  | 'smart-notifications'
+  | 'git-integration'
+  | 'learning-patterns';
 
 export interface EventPayload {
   id: string;
