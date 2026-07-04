@@ -1,108 +1,78 @@
 import { EventBus, getLogger } from '@ai-work-memory/shared';
-import { execFile, ChildProcess } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
 
 const log = getLogger();
 
-const KEYBOARD_HOOK_SCRIPT = `
+const KEYBOARD_SCRIPT = `
 Add-Type @"
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 
-public class KeyboardHook {
-    private static IntPtr hookId = IntPtr.Zero;
-    private static int keyCount = 0;
-    private static string lastShortcut = "";
-    private static DateTime lastShortcutTime = DateTime.MinValue;
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool UnhookWindowsHookEx(IntPtr hhk);
-
+public class KeyboardMonitor {
     [DllImport("user32.dll")]
-    private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
-
-    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern IntPtr GetModuleHandle(string lpModuleName);
-
-    private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
-
-    private const int WH_KEYBOARD_LL = 13;
-    private const int WM_KEYDOWN = 0x0100;
-    private const int WM_SYSKEYDOWN = 0x0104;
-
-    public static void Start() {
-        hookId = SetHook(HookCallback);
-    }
-
-    public static void Stop() {
-        UnhookWindowsHookEx(hookId);
-    }
-
-    private static IntPtr SetHook(LowLevelKeyboardProc proc) {
-        using (Process curProcess = Process.GetCurrentProcess())
-        using (ProcessModule curModule = curProcess.MainModule) {
-            return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
-        }
-    }
-
-    private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam) {
-        if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN)) {
-            int vkCode = Marshal.ReadInt32(lParam);
-            keyCount++;
-
-            bool ctrl = (Control.ModifierKeys & Keys.Control) == Keys.Control;
-            bool alt = (Control.ModifierKeys & Keys.Alt) == Keys.Alt;
-            bool shift = (Control.ModifierKeys & Keys.Shift) == Keys.Shift;
-
-            if (ctrl || alt) {
-                string shortcut = "";
-                if (ctrl) shortcut += "Ctrl+";
-                if (alt) shortcut += "Alt+";
-                if (shift) shortcut += "Shift+";
-                shortcut += ((Keys)vkCode).ToString();
-
-                if (shortcut != lastShortcut || (DateTime.Now - lastShortcutTime).TotalMilliseconds > 500) {
-                    lastShortcut = shortcut;
-                    lastShortcutTime = DateTime.Now;
-                    Console.WriteLine("SHORTCUT:" + shortcut);
-                }
-            }
-        }
-        return CallNextHookEx(hookId, nCode, wParam, lParam);
-    }
+    public static extern short GetAsyncKeyState(int vKey);
+    
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+    
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder text, int count);
 }
 "@
 
-[KeyboardHook]::Start()
+$lastCount = 0
+$lastShortcut = ""
+$lastActivity = Get-Date
 
-$lastReport = Get-Date
 while ($true) {
-    Start-Sleep -Milliseconds 5000
-    $now = Get-Date
+    Start-Sleep -Milliseconds 500
+    
+    $keyCount = 0
+    $ctrlPressed = [KeyboardMonitor]::GetAsyncKeyState(0x11) -band 0x8000
+    $altPressed = [KeyboardMonitor]::GetAsyncKeyState(0x12) -band 0x8000
+    $shiftPressed = [KeyboardMonitor]::GetAsyncKeyState(0x10) -band 0x8000
+    
+    for ($vk = 8; $vk -le 190; $vk++) {
+        $state = [KeyboardMonitor]::GetAsyncKeyState($vk)
+        if ($state -band 0x0001) {
+            $keyCount++
+            $lastActivity = Get-Date
+            
+            if ($ctrlPressed -or $altPressed) {
+                $shortcut = ""
+                if ($ctrlPressed) { $shortcut += "Ctrl+" }
+                if ($altPressed) { $shortcut += "Alt+" }
+                if ($shiftPressed) { $shortcut += "Shift+" }
+                
+                $key = [System.Enum]::GetName([System.Windows.Forms.Keys], $vk)
+                if ($key) { $shortcut += $key }
+                
+                if ($shortcut -ne $lastShortcut) {
+                    Write-Output "SHORTCUT:$shortcut"
+                    $lastShortcut = $shortcut
+                }
+            }
+        }
+    }
+    
     if ($keyCount -gt 0) {
         Write-Output "KEYS:$keyCount"
-        $keyCount = 0
     }
-    $idleMs = [int]((Get-Date) - $now).TotalMilliseconds
-    if ($idleMs -gt 30000) {
-        Write-Output "IDLE:$idleMs"
+    
+    $idleSeconds = [int]((Get-Date) - $lastActivity).TotalSeconds
+    if ($idleSeconds -gt 30) {
+        Write-Output "IDLE:$idleSeconds"
     }
 }
-
-[KeyboardHook]::Stop()
 `;
 
 export class KeyboardTracker {
-  private batchInterval: ReturnType<typeof setInterval> | null = null;
   private hookProcess: ChildProcess | null = null;
+  private batchInterval: ReturnType<typeof setInterval> | null = null;
   private keystrokeCount = 0;
   private shortcuts: string[] = [];
   private lastActivityTime = Date.now();
@@ -110,32 +80,39 @@ export class KeyboardTracker {
   private scriptPath: string;
 
   constructor(private bus: EventBus) {
-    this.scriptPath = path.join(os.tmpdir(), `awm-keyboard-hook-${process.pid}.ps1`);
+    this.scriptPath = path.join(os.tmpdir(), `rewindx-keyboard-${process.pid}.ps1`);
   }
 
   async start(): Promise<void> {
     try {
-      await fs.promises.writeFile(this.scriptPath, KEYBOARD_HOOK_SCRIPT, 'utf-8');
+      await fs.promises.writeFile(this.scriptPath, KEYBOARD_SCRIPT, 'utf-8');
 
-      this.hookProcess = execFile(
-        'powershell.exe',
-        ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', this.scriptPath],
-        { windowsHide: true },
-        (err) => {
-          if (err) {
-            log.warn({ err }, 'Keyboard hook process exited with error');
-          }
-        }
-      );
+      this.hookProcess = spawn('powershell.exe', [
+        '-NoProfile',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', this.scriptPath,
+      ], {
+        windowsHide: true,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
 
       if (this.hookProcess.stdout) {
         this.hookProcess.stdout.on('data', (data: Buffer) => {
           const lines = data.toString().split('\n').filter(l => l.trim());
           for (const line of lines) {
-            this.processHookOutput(line.trim());
+            this.processOutput(line.trim());
           }
         });
       }
+
+      this.hookProcess.on('error', (err) => {
+        log.warn({ err }, 'Keyboard tracker process error');
+      });
+
+      this.hookProcess.on('exit', (code) => {
+        log.warn({ code }, 'Keyboard tracker process exited, restarting...');
+        setTimeout(() => this.start(), 1000);
+      });
 
       this.batchInterval = setInterval(() => {
         if (this.keystrokeCount > 0 || this.shortcuts.length > 0) {
@@ -158,14 +135,13 @@ export class KeyboardTracker {
         }
       }, 5_000);
 
-      log.info('Keyboard tracker started with native hook');
+      log.info('Keyboard tracker started with PowerShell hook');
     } catch (err) {
-      log.warn({ err }, 'Failed to start keyboard hook, falling back to batch mode');
-      this.startFallbackMode();
+      log.warn({ err }, 'Failed to start keyboard tracker');
     }
   }
 
-  private processHookOutput(line: string): void {
+  private processOutput(line: string): void {
     if (line.startsWith('KEYS:')) {
       const count = parseInt(line.substring(5), 10);
       if (!isNaN(count) && count > 0) {
@@ -183,31 +159,18 @@ export class KeyboardTracker {
         shortcut,
       });
     } else if (line.startsWith('IDLE:')) {
-      const idleMs = parseInt(line.substring(5), 10);
-      if (!isNaN(idleMs) && idleMs > 30_000) {
+      const idleSeconds = parseInt(line.substring(5), 10);
+      if (!isNaN(idleSeconds) && idleSeconds > 30) {
         this.isIdle = true;
         this.bus.emit('MOUSE_IDLE', 'keyboard-tracker', {
-          idleDurationMs: idleMs,
+          idleDurationMs: idleSeconds * 1000,
         });
       }
     }
   }
 
-  private startFallbackMode(): void {
-    this.batchInterval = setInterval(() => {
-      if (this.keystrokeCount > 0 || this.shortcuts.length > 0) {
-        this.bus.emit('KEYSTROKE_BATCH', 'keyboard-tracker', {
-          keystrokeCount: this.keystrokeCount,
-          shortcuts: [...this.shortcuts],
-          typingSpeed: this.calculateTypingSpeed(),
-          idleDurationMs: Date.now() - this.lastActivityTime,
-        });
-        this.keystrokeCount = 0;
-        this.shortcuts = [];
-      }
-    }, 5_000);
-
-    log.info('Keyboard tracker started in fallback batch mode');
+  private calculateTypingSpeed(): number {
+    return this.keystrokeCount * 12;
   }
 
   async stop(): Promise<void> {
@@ -224,24 +187,5 @@ export class KeyboardTracker {
     try {
       await fs.promises.unlink(this.scriptPath);
     } catch {}
-  }
-
-  recordKeystroke(): void {
-    this.keystrokeCount++;
-    this.lastActivityTime = Date.now();
-    this.isIdle = false;
-  }
-
-  recordShortcut(shortcut: string): void {
-    this.shortcuts.push(shortcut);
-    this.lastActivityTime = Date.now();
-    this.isIdle = false;
-    this.bus.emit('SHORTCUT_PRESSED', 'keyboard-tracker', {
-      shortcut,
-    });
-  }
-
-  private calculateTypingSpeed(): number {
-    return this.keystrokeCount * 12;
   }
 }
