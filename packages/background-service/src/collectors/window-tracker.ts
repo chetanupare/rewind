@@ -27,7 +27,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-public class ActiveWindow {
+public class WinAPI {
     [DllImport("user32.dll")]
     public static extern IntPtr GetForegroundWindow();
     
@@ -52,34 +52,45 @@ public class ActiveWindow {
 "@
 
 $lastTitle = ""
+$lastPid = 0
+
 while ($true) {
+    Start-Sleep -Milliseconds 500
+    
     try {
-        $hwnd = [ActiveWindow]::GetForegroundWindow()
+        $hwnd = [WinAPI]::GetForegroundWindow()
+        
+        if ($hwnd -eq [IntPtr]::Zero) {
+            continue
+        }
+        
         $sb = New-Object System.Text.StringBuilder 512
-        [ActiveWindow]::GetWindowText($hwnd, $sb, 512) | Out-Null
+        [WinAPI]::GetWindowText($hwnd, $sb, 512) | Out-Null
         $title = $sb.ToString()
         
         $procId = 0
-        [ActiveWindow]::GetWindowThreadProcessId($hwnd, [ref]$procId) | Out-Null
+        [WinAPI]::GetWindowThreadProcessId($hwnd, [ref]$procId) | Out-Null
         
-        $rect = New-Object ActiveWindow+RECT
-        [ActiveWindow]::GetWindowRect($hwnd, [ref]$rect) | Out-Null
-        
-        $proc = Get-Process -Id $procId -ErrorAction SilentlyContinue
-        $name = if ($proc) { $proc.ProcessName } else { "Unknown" }
-        $procPath = if ($proc -and $proc.Path) { $proc.Path } else { "" }
-        
-        $w = $rect.Right - $rect.Left
-        $h = $rect.Bottom - $rect.Top
-        
-        $output = "$procId|$name|$procPath|$title|$($rect.Left)|$($rect.Top)|$w|$h"
-        
-        if ($title -ne $lastTitle -and $title.Length -gt 0) {
-            Write-Output $output
+        if ($title -ne $lastTitle -or $procId -ne $lastPid) {
             $lastTitle = $title
+            $lastPid = $procId
+            
+            $rect = New-Object WinAPI+RECT
+            [WinAPI]::GetWindowRect($hwnd, [ref]$rect) | Out-Null
+            
+            $proc = Get-Process -Id $procId -ErrorAction SilentlyContinue
+            $name = if ($proc) { $proc.ProcessName } else { "Unknown" }
+            $procPath = if ($proc -and $proc.Path) { $proc.Path } else { "" }
+            
+            $w = $rect.Right - $rect.Left
+            $h = $rect.Bottom - $rect.Top
+            
+            $output = "$procId|$name|$procPath|$title|$($rect.Left)|$($rect.Top)|$w|$h"
+            Write-Output $output
         }
-    } catch {}
-    Start-Sleep -Milliseconds 500
+    } catch {
+        # Silently handle errors
+    }
 }
 `;
 
