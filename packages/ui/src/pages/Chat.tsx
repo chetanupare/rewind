@@ -43,6 +43,11 @@ export default function Chat() {
       <div className="chat-msgs">
         {messages.length === 0 && (
           <div className="chat-empty">
+            <img 
+              src="./assets/brand/logo.png" 
+              alt="RewindX" 
+              style={{ width: '120px', height: 'auto', marginBottom: '16px' }}
+            />
             <h3>RewindX</h3>
             <p>Ask me anything about your work</p>
             <div className="chat-suggestions">

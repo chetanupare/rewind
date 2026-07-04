@@ -24,7 +24,14 @@ export default function App() {
     <div className="app">
       <nav className="sidebar">
         <div className="sidebar-header">
-          <h1>RewindX</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img 
+              src="./assets/brand/icon.png" 
+              alt="RewindX" 
+              style={{ width: '32px', height: '32px', borderRadius: '8px' }}
+            />
+            <h1>RewindX</h1>
+          </div>
         </div>
         <ul className="nav-links">
           <li><NavLink to="/" className={({ isActive }) => isActive ? 'active' : ''}>Dashboard</NavLink></li>

@@ -64,6 +64,16 @@ export default function Omnibar() {
       color: 'var(--text)',
       padding: '24px'
     }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+        <img 
+          src="./assets/brand/omnibar-logo.png" 
+          alt="RewindX" 
+          style={{ width: '24px', height: '24px', borderRadius: '6px' }}
+        />
+        <span style={{ fontSize: '14px', fontWeight: 700, background: 'linear-gradient(135deg, #5B2EFF 0%, #FF4D9D 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Ask RewindX
+        </span>
+      </div>
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '12px' }}>
         <input
           ref={inputRef}

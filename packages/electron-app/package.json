@@ -24,8 +24,9 @@
                             "typescript":  "^5.5.0"
                         },
     "build":  {
-                  "appId":  "com.aiworkmemory.app",
+                  "appId":  "com.rewindx.app",
                   "productName":  "RewindX",
+                  "icon":  "build/icon.png",
                   "directories":  {
                                       "output":  "../../dist-electron"
                                   },
@@ -41,11 +42,14 @@
                   "asar":  false,
                   "npmRebuild":  true,
                   "win":  {
-                              "target":  "portable"
+                              "target":  "portable",
+                              "icon":  "build/icon.png"
                           },
                   "nsis":  {
                                "oneClick":  false,
-                               "allowToChangeInstallationDirectory":  true
+                               "allowToChangeInstallationDirectory":  true,
+                               "installerIcon":  "build/icon.png",
+                               "uninstallerIcon":  "build/icon.png"
                            }
               }
 }

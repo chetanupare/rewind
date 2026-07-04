@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⏪ RewindX
+<img src="packages/ui/public/assets/brand/text-logo.png" alt="RewindX" width="400" />
 
 ### Your AI-Powered Work Memory
 

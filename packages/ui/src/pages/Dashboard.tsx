@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { GlassCard, AuroraBackground } from '../components';
 
 declare global {
   interface Window {
@@ -96,7 +97,6 @@ export default function Dashboard() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Time Travel states
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [screenshots, setScreenshots] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -147,21 +147,29 @@ export default function Dashboard() {
     loadImage();
   }, [currentIndex, screenshots]);
 
-  const latest = activities[0];
   const codingMin = Math.round(activities.filter(a => inferActivity(a.app_name) === 'Coding').reduce((s, a) => s + (a.duration_seconds || 0), 0) / 60);
   const researchMin = Math.round(activities.filter(a => inferActivity(a.app_name) === 'Research').reduce((s, a) => s + (a.duration_seconds || 0), 0) / 60);
   const commMin = Math.round(activities.filter(a => ['Communication', 'Email', 'Meeting'].includes(inferActivity(a.app_name))).reduce((s, a) => s + (a.duration_seconds || 0), 0) / 60);
 
   return (
-    <div className="dash">
-      <header className="dash-greeting">
+    <div className="dash" style={{ position: 'relative' }}>
+      <AuroraBackground className="dashboard-aurora" />
+      
+      <header className="dash-greeting" style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+          <img 
+            src="./assets/brand/text-logo.png" 
+            alt="RewindX" 
+            style={{ height: '32px', width: 'auto' }}
+          />
+        </div>
         <h1>{getGreeting()}</h1>
         <p>Here's what's happening with your work</p>
       </header>
 
-      <div className="bento-grid">
+      <div className="bento-grid" style={{ position: 'relative', zIndex: 1 }}>
         {screenshots.length > 0 ? (
-          <section className="glass-card bento-hero accent-glow" style={{ display: 'flex', flexDirection: 'column', gap: '16px', gridColumn: 'span 4' }}>
+          <GlassCard gradient className="bento-hero" style={{ display: 'flex', flexDirection: 'column', gap: '16px', gridColumn: 'span 4' } as any}>
             <div className="pulse-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="pulse-dot" />
@@ -172,15 +180,15 @@ export default function Dashboard() {
                 value={date} 
                 onChange={(e) => setDate(e.target.value)}
                 className="glass-input"
-                style={{ background: 'rgba(255, 255, 255, 0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '4px 8px', borderRadius: '4px' }}
+                style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', padding: '4px 8px', borderRadius: '8px' }}
               />
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
               <div style={{ 
                 flex: 1, 
-                background: '#000', 
-                borderRadius: '8px', 
+                background: 'var(--bg3)', 
+                borderRadius: '12px', 
                 overflow: 'hidden',
                 display: 'flex',
                 alignItems: 'center',
@@ -233,9 +241,9 @@ export default function Dashboard() {
                 style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--brand)', marginTop: '8px' }}
               />
             </div>
-          </section>
+          </GlassCard>
         ) : (
-          <section className="glass-card bento-hero accent-glow" style={{ display: 'flex', flexDirection: 'column', gap: '16px', gridColumn: 'span 4' }}>
+          <GlassCard gradient className="bento-hero" style={{ display: 'flex', flexDirection: 'column', gap: '16px', gridColumn: 'span 4' } as any}>
             <div className="pulse-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="pulse-dot" />
@@ -246,13 +254,13 @@ export default function Dashboard() {
                 value={date} 
                 onChange={(e) => setDate(e.target.value)}
                 className="glass-input"
-                style={{ background: 'rgba(255, 255, 255, 0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '4px 8px', borderRadius: '4px' }}
+                style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', padding: '4px 8px', borderRadius: '8px' }}
               />
             </div>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text3)', minHeight: '240px' }}>
               No screenshots found for {date}
             </div>
-          </section>
+          </GlassCard>
         )}
 
         <div style={{ gridColumn: 'span 4', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -262,21 +270,21 @@ export default function Dashboard() {
             { label: 'Meetings', value: `${commMin}m`, color: ACCENT_COLORS.Communication },
             { label: 'Screenshots', value: stats.totalScreenshots, color: '#94a3b8' },
           ].map(s => (
-            <div key={s.label} className="glass-card stat-card" style={{ padding: '20px 16px' }}>
+            <GlassCard key={s.label} className="stat-card" style={{ padding: '20px 16px' } as any}>
               <div className="stat-value" style={{ color: s.color, fontSize: '24px' }}>{s.value}</div>
               <div className="stat-label">{s.label}</div>
-            </div>
+            </GlassCard>
           ))}
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '16px', position: 'relative', zIndex: 1 }}>
         <section className="feed-section" style={{ gridColumn: 'span 8' }}>
           <h3>Recent Activity</h3>
           {activities.length === 0 && !loading ? (
-            <div className="glass-card empty-state">
-              <p>Start using your computer — activity will appear here</p>
-            </div>
+            <GlassCard>
+              <p style={{ textAlign: 'center', color: 'var(--text3)' }}>Start using your computer — activity will appear here</p>
+            </GlassCard>
           ) : (
             <div className="feed">
               {activities.slice(0, 10).map((a, i) => {
