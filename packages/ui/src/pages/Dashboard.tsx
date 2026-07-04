@@ -272,8 +272,18 @@ export default function Dashboard() {
                         <config.icon style={{ width: 18, height: 18, color: config.color }} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>{a.app_name}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.window_title || 'No title'}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.app_name}</div>
+                        <div style={{ 
+                          fontSize: '12px', 
+                          color: 'var(--color-text-secondary)', 
+                          wordBreak: 'break-word',
+                          lineHeight: '1.4',
+                          maxHeight: '2.8em',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical'
+                        }}>{a.window_title || 'No title'}</div>
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
                         <div style={{ fontSize: '11px', fontWeight: 600, color: config.color }}>{act}</div>
