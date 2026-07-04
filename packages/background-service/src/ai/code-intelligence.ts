@@ -34,7 +34,7 @@ export class CodeIntelligence {
     importPattern: RegExp;
     exportPattern: RegExp;
     commentPattern: RegExp;
-  }>;
+  }> = {};
 
   constructor(
     private db: Database,

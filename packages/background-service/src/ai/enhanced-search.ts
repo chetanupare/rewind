@@ -223,13 +223,13 @@ export class EnhancedSearch {
       });
 
       return vectorResults.map(r => ({
-        id: r.payload.source_id as number || 0,
-        type: r.payload.source_type as string || 'unknown',
-        title: r.payload.text as string?.substring(0, 100) || '',
-        content: r.payload.text as string || '',
+        id: (r.payload.source_id as number) || 0,
+        type: (r.payload.source_type as string) || 'unknown',
+        title: (r.payload.text as string || '').substring(0, 100),
+        content: (r.payload.text as string) || '',
         score: r.score,
         source: 'embeddings',
-        timestamp: r.payload.timestamp as string || new Date().toISOString(),
+        timestamp: (r.payload.timestamp as string) || new Date().toISOString(),
         metadata: r.payload,
       }));
     } catch (err) {

@@ -78,7 +78,10 @@ export type EventType =
   | 'BATTERY_UNPLUGGED'
   | 'BATTERY_PLUGGED'
   | 'BATTERY_LOW'
-  | 'BATTERY_CRITICAL';
+  | 'BATTERY_CRITICAL'
+  | 'CODE_ANALYZED'
+  | 'DOCUMENT_PROCESSED'
+  | 'TRANSCRIPT_READY';
 
 export type CollectorSource =
   | 'window-tracker'
