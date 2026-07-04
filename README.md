@@ -8,7 +8,7 @@
 
 [![Windows](https://img.shields.io/badge/Platform-Windows-5B2EFF?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/chetanupare/rewind/releases)
 [![Version](https://img.shields.io/badge/Version-0.2.0-8A3FFC?style=for-the-badge)](https://github.com/chetanupare/rewind/releases)
-[![License](https://img.shields.io/badge/License-MIT-00D47E?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-00D47E?style=for-the-badge)](LICENSE)
 
 <br />
 
@@ -300,37 +300,48 @@ rewindx/
 ├── installer.iss            # Inno Setup
 ├── FEATURES.md              # Feature docs
 ├── ROADMAP.md               # Roadmap
+├── CHANGELOG.md             # Changes
+├── CONTRIBUTING.md          # How to contribute
+├── SECURITY.md              # Security policy
+├── CODE_OF_CONDUCT.md       # Code of conduct
 └── AGENTS.md                # AI context
 ```
 
 ---
 
+## Documentation
+
+- [Features](FEATURES.md) - Complete feature documentation
+- [Roadmap](ROADMAP.md) - 12-phase development plan
+- [Changelog](CHANGELOG.md) - Version history
+- [Contributing](CONTRIBUTING.md) - How to contribute
+- [Security](SECURITY.md) - Security policy
+- [Code of Conduct](CODE_OF_CONDUCT.md) - Community guidelines
+
+---
+
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
 ## License
 
-MIT License
+This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## Author
 
-**Chetan Pare** — [GitHub](https://github.com/chetanupare)
+**Chetan Upare**
+
+[![GitHub](https://img.shields.io/badge/GitHub-chetanupare-111827?style=for-the-badge&logo=github)](https://github.com/chetanupare)
 
 ---
 
 <div align="center">
 
 **RewindX** — Your AI-Powered Second Brain
-
-[![GitHub](https://img.shields.io/badge/GitHub-chetanupare-111827?style=for-the-badge&logo=github)](https://github.com/chetanupare/rewind)
 
 </div>
