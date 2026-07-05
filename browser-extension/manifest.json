@@ -6,15 +6,16 @@
   "permissions": [
     "tabs",
     "activeTab",
-    "history",
     "storage",
     "alarms"
   ],
   "host_permissions": [
-    "http://localhost:48291/*"
+    "http://localhost:48291/*",
+    "http://127.0.0.1:48291/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "action": {
     "default_popup": "popup.html",

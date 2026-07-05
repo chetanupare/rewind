@@ -1,12 +1,18 @@
-const API_URL = 'http://localhost:48291';
-const SYNC_INTERVAL = 30000;
+// RewindX Browser Extension - Background Service Worker
 
+const API_URL = 'http://localhost:48291';
+let isConnected = false;
 let currentTab = null;
 let tabStartTime = null;
 let browsingHistory = [];
-let isConnected = false;
 
-// Track tab changes
+// Initialize
+chrome.runtime.onInstalled.addListener(() => {
+  console.log('RewindX Browser Extension installed');
+  checkConnection();
+});
+
+// Track tab activation
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
   try {
     const tab = await chrome.tabs.get(activeInfo.tabId);
@@ -32,7 +38,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 });
 
 async function handleTabChange(tab) {
-  if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:')) {
+  if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:')) {
     return;
   }
 
@@ -80,7 +86,11 @@ function recordTimeSpent() {
   }
 
   // Store locally
-  chrome.storage.local.set({ browsingHistory });
+  try {
+    chrome.storage.local.set({ browsingHistory });
+  } catch (err) {
+    console.error('Error storing history:', err);
+  }
 
   // Send to RewindX
   sendToRewindX('BROWSER_TIME_SPENT', {
@@ -106,11 +116,11 @@ async function sendToRewindX(eventType, payload) {
     if (response.ok) {
       isConnected = true;
     } else {
-      console.error('Failed to send event to RewindX:', response.status);
+      console.error('Failed to send event:', response.status);
     }
   } catch (err) {
     isConnected = false;
-    console.error('RewindX not available:', err.message);
+    // Silently fail - RewindX might not be running
   }
 }
 
@@ -122,16 +132,33 @@ function detectBrowser() {
   return 'unknown';
 }
 
+// Check connection periodically
+async function checkConnection() {
+  try {
+    const response = await fetch(`${API_URL}/health`);
+    isConnected = response.ok;
+    console.log('RewindX connection:', isConnected ? 'OK' : 'Failed');
+  } catch {
+    isConnected = false;
+    console.log('RewindX not available');
+  }
+}
+
 // Sync history periodically
 chrome.alarms.create('syncHistory', { periodInMinutes: 1 });
+chrome.alarms.create('checkConnection', { periodInMinutes: 0.5 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'syncHistory') {
     await syncBrowsingHistory();
+  } else if (alarm.name === 'checkConnection') {
+    await checkConnection();
   }
 });
 
 async function syncBrowsingHistory() {
+  if (!isConnected) return;
+
   try {
     const oneHourAgo = Date.now() - (60 * 60 * 1000);
     const historyItems = await chrome.history.search({
@@ -158,11 +185,15 @@ async function syncBrowsingHistory() {
 }
 
 // Load stored history on startup
-chrome.storage.local.get(['browsingHistory'], (result) => {
-  if (result.browsingHistory) {
-    browsingHistory = result.browsingHistory;
-  }
-});
+try {
+  chrome.storage.local.get(['browsingHistory'], (result) => {
+    if (result.browsingHistory) {
+      browsingHistory = result.browsingHistory;
+    }
+  });
+} catch (err) {
+  console.error('Error loading history:', err);
+}
 
 // Handle messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -174,18 +205,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       currentTab: currentTab,
       historyCount: browsingHistory.length
     });
+  } else if (request.action === 'checkConnection') {
+    checkConnection().then(() => {
+      sendResponse({ connected: isConnected });
+    });
+    return true; // Keep message channel open for async response
   }
   return true;
 });
-
-// Check connection on startup
-setInterval(async () => {
-  try {
-    const response = await fetch(`${API_URL}/health`);
-    isConnected = response.ok;
-  } catch {
-    isConnected = false;
-  }
-}, 10000);
 
 console.log('RewindX Browser Extension loaded');
