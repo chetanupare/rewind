@@ -1,7 +1,6 @@
 import { Database, getConfig, getLogger, ensureQdrantCollection } from '@ai-work-memory/shared';
 import type { EventBus, AppConfig } from '@ai-work-memory/shared';
-import { NativeWindowTracker } from './collectors/native-window-tracker.js';
-import { NativeInputTracker } from './collectors/native-input-tracker.js';
+import { UnifiedTracker } from './collectors/unified-tracker.js';
 import { ScreenshotService } from './collectors/screenshot-service.js';
 import { ClipboardMonitor } from './collectors/clipboard-monitor.js';
 import { SystemEvents } from './collectors/system-events.js';
@@ -56,9 +55,8 @@ export async function startBackgroundService(
   // Initialize plugin manager
   pluginManager = new PluginManager(database, bus, config as any);
 
-  // Initialize native trackers
-  const windowTracker = new NativeWindowTracker(bus, database);
-  const inputTracker = new NativeInputTracker(bus);
+  // Initialize unified tracker (replaces window + keyboard + mouse)
+  const unifiedTracker = new UnifiedTracker(bus, database);
   const screenshotService = new ScreenshotService(bus, database);
   const clipboardMonitor = new ClipboardMonitor(bus, database);
   const systemEvents = new SystemEvents(bus, database);
@@ -91,11 +89,9 @@ export async function startBackgroundService(
   log.info({ port: memoryApi.getPort() }, 'Memory API started');
 
   // Start collectors with staggered delays
-  await windowTracker.start();
-  log.info('Native window tracker started');
-
-  await inputTracker.start();
-  log.info('Native input tracker started');
+  // Start collectors with staggered delays
+  await unifiedTracker.start();
+  log.info('Unified tracker started (window + keyboard + mouse)');
 
   await screenshotService.start();
   log.info('Screenshot service started');
@@ -128,7 +124,7 @@ export async function startBackgroundService(
   log.info('Vision analyzer started');
 
   collectors = [
-    windowTracker, inputTracker, screenshotService, clipboardMonitor,
+    unifiedTracker, screenshotService, clipboardMonitor,
     systemEvents, filesystemWatcher, gitTracker, flowStateTracker,
     thrashingDetector, wikiGenerator, sessionBuilder, visionAnalyzer,
   ];
@@ -136,7 +132,7 @@ export async function startBackgroundService(
   startScheduler(database, bus);
   startRetentionManager(config);
 
-  log.info('RewindX background service running with native APIs');
+  log.info('RewindX background service running');
 }
 
 export async function stopBackgroundService(): Promise<void> {
