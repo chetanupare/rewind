@@ -41,7 +41,19 @@ export class MemoryApi {
         created_at TEXT DEFAULT (datetime('now'))
       );
 
+      CREATE TABLE IF NOT EXISTS browser_contexts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
+        url TEXT,
+        title TEXT,
+        site TEXT,
+        category TEXT,
+        is_productive INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT (datetime('now'))
+      );
+
       CREATE INDEX IF NOT EXISTS idx_api_logs_timestamp ON api_logs(timestamp);
+      CREATE INDEX IF NOT EXISTS idx_browser_contexts_time ON browser_contexts(timestamp);
     `);
   }
 
